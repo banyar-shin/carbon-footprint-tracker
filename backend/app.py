@@ -1,5 +1,4 @@
-
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify
 import pandas as pd
 
 app = Flask(__name__)
@@ -10,14 +9,14 @@ app = Flask(__name__)
 #     return render_template('index.html')
 
 
-@app.route('/upload', methods=['POST'])
+@app.route("/upload", methods=["POST"])
 def upload_file():
-    if 'file' not in request.files:
+    if "file" not in request.files:
         return jsonify({"error": "No file part"}), 400
-    
-    file = request.files['file']
-    
-    if file.filename == '':
+
+    file = request.files["file"]
+
+    if file.filename == "":
         return jsonify({"error": "No selected file"}), 400
 
     # Process CSV file
@@ -27,7 +26,9 @@ def upload_file():
     try:
         df = pd.read_csv(file)
         # Do some processing with the data, for example, sum a column
-        total_sum = df['column_name'].sum()  # Replace 'column_name' with your actual column
+        total_sum = df[
+            "column_name"
+        ].sum()  # Replace 'column_name' with your actual column
 
         # Respond with some result from the processing
         return jsonify({"total_sum": total_sum})
@@ -35,7 +36,6 @@ def upload_file():
         return jsonify({"error": str(e)}), 500
 
 
+if __name__ == "__main__":
+    app.run(debug=True)
 
-
-if __name__ == '__main__':
-   app.run(debug = True)
