@@ -2,8 +2,8 @@ import pandas as pd
 
 from datetime import datetime, timedelta
 
-def parseMonthCSV():
-    df = pd.read_csv("backend/pge.csv",
+def parseMonthCSV(file):
+    df = pd.read_csv(file,
                                 skiprows = 5 # skip the first 5 rows
                                 )
             
@@ -19,8 +19,8 @@ def parseMonthCSV():
 
 
 
-def parseAnnualCSV():
-    df = pd.read_csv("backend/pge2.csv",
+def parseAnnualCSV(file):
+    df = pd.read_csv(file,
                                 skiprows = 5 # skip the first 5 rows
                                 )
         
