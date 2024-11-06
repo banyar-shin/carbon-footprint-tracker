@@ -1,5 +1,6 @@
 import pandas as pd
 
+from flask import Flask, render_template, request, jsonify
 from datetime import datetime, timedelta
 
 def parseMonthCSV(file):
@@ -16,6 +17,8 @@ def parseMonthCSV(file):
     df['TYPE'] = df['TYPE'].replace("Electric usage", "Electric")
 
     print(df.head(10))
+    return jsonify({"Pass": "Parsed"}), 200
+    # TODO add into mongo 
 
 
 
@@ -32,6 +35,8 @@ def parseAnnualCSV(file):
     df['TYPE'] = df['TYPE'].replace("Electric billing", "Electric")
 
     print(df.head(10))
+    # TODO add into mongo 
+    return jsonify({"Pass": "Parsed"}), 200
 
 
 

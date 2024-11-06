@@ -33,12 +33,12 @@ def uploadCSV():
     # Read the CSV into a Pandas DataFrame to check its structure
     try:
         df = pd.read_csv(file, skiprows= 5, nrows=2) # Get first 2 rows
+        file.seek(0)
         
         # Check for specific columns to determine parsing method
         if 'START DATE' in df.columns and 'END DATE' in df.columns:
             return parseAnnualCSV(file)
         elif 'START TIME' in df.columns and 'END TIME' in df.columns:
-           
             return parseMonthCSV(file)
         
         else:
