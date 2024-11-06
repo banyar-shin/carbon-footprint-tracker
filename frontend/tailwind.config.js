@@ -8,12 +8,23 @@ export default {
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
-    extend: {},
+    extend: {
+      animation: {
+        pulseSlow: "pulseSlow 4s infinite",
+      },
+      keyframes: {
+        pulseSlow: {
+          "0%": { transform: "scale(1)" },
+          "50%": { transform: "scale(1.05)" },
+          "100%": { transform: "scale(1)" },
+        },
+      },
+    },
   },
   plugins: [
     daisyui,
   ],
   daisyui: {
-    themes: ["retro"],
+    themes: ["forest"],
   },
 };
