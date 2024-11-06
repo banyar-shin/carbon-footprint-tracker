@@ -14,15 +14,6 @@ export default function SignInPage() {
       </button>
       <SignIn
         path="/sign-in"
-        appearance={{
-          elements: {
-            formButtonPrimary: 'bg-primary',
-          },
-          variables: {
-            colorTextOnPrimaryBackground: 'black',
-            colorBackground: '#ece3ca',
-          },
-        }}
       />
     </div>
   )
