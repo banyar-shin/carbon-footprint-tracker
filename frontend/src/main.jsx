@@ -1,83 +1,51 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import {
-  createBrowserRouter,
-  RouterProvider,
-} from "react-router-dom";
+import React from 'react'
+import ReactDOM from 'react-dom/client'
 import './index.css'
+import { RouterProvider, createBrowserRouter } from 'react-router-dom'
 
-import LandingPage from "./routes/LandingPage"
-import ErrorPage from "./routes/ErrorPage"
-import AuthPage from "./routes/AuthPage"
-import SettingsPage from "./routes/SettingsPage"
-import DashboardPage from "./routes/DashboardPage"
-import Home from "./routes/Home"
-import Transport from "./routes/Transport"
-import Diet from "./routes/Diet"
-import Power from "./routes/Power"
-import Login from "./routes/Login"
-import Signup from "./routes/Signup"
+import RootLayout from './layouts/root-layout'
+import DashboardLayout from './layouts/dashboard-layout'
 
-// Import your publishable key
-const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
-
-if (!PUBLISHABLE_KEY) {
-  throw new Error("Missing Publishable Key")
-}
+import ErrorPage from './routes/ErrorPage'
+import LandingPage from './routes/LandingPage'
+import SignInPage from './routes/SignInPage'
+import SignUpPage from './routes/SignUpPage'
+import DashboardPage from './routes/DashboardPage'
+import Energy from './routes/Energy'
+import Transport from './routes/Transport'
+import Diet from './routes/Diet'
+import Settings from './routes/Settings'
 
 const router = createBrowserRouter([
   {
-    path: "/",
-    element: <LandingPage />,
-    errorElement: <ErrorPage />,
-  },
-  {
-    path: "/dashboard",
-    element: <DashboardPage />,
+    element: <RootLayout />,
     errorElement: <ErrorPage />,
     children: [
+      { path: '/', element: <LandingPage /> },
+      { path: '/sign-in/*', element: <SignInPage /> },
+      { path: '/sign-up/*', element: <SignUpPage /> },
       {
-        index: true,
-        element: <Home />,
+        element: <DashboardLayout />,
+        path: 'dashboard',
+        children: [
+          {
+            path: '/dashboard',
+            element: <DashboardPage />,
+            children: [
+              { path: '/dashboard/energy', element: <Energy /> },
+              { path: '/dashboard/transport', element: <Transport /> },
+              { path: '/dashboard/diet', element: <Diet /> },
+              { path: '/dashboard/settings', element: <Settings /> },
+            ]
+          },
+        ],
       },
-      {
-        path: "transport",
-        element: <Transport />,
-      },
-      {
-        path: "diet",
-        element: <Diet />,
-      },
-      {
-        path: "power",
-        element: <Power />,
-      },
-    ]
+    ],
   },
-  {
-    path: "settings",
-    element: <SettingsPage />,
-    errorElement: <ErrorPage />,
-  },
-  {
-    path: "auth",
-    element: <AuthPage />,
-    errorElement: <ErrorPage />,
-    children: [
-      {
-        path: "login",
-        element: <Login />,
-      },
-      {
-        path: "signup",
-        element: <Signup />,
-      }
-    ]
-  }
 ])
 
-createRoot(document.getElementById('root')).render(
-  <StrictMode>
+ReactDOM.createRoot(document.getElementById('root')).render(
+  <React.StrictMode>
     <RouterProvider router={router} />
-  </StrictMode>,
+  </React.StrictMode>,
 )
