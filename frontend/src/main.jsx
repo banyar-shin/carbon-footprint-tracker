@@ -11,6 +11,7 @@ import LandingPage from './routes/LandingPage'
 import SignInPage from './routes/SignInPage'
 import SignUpPage from './routes/SignUpPage'
 import DashboardPage from './routes/DashboardPage'
+import General from './routes/General'
 import Energy from './routes/Energy'
 import Transport from './routes/Transport'
 import Diet from './routes/Diet'
@@ -29,13 +30,14 @@ const router = createBrowserRouter([
         path: 'dashboard',
         children: [
           {
-            path: '/dashboard',
+            path: '',
             element: <DashboardPage />,
             children: [
-              { path: '/dashboard/energy', element: <Energy /> },
-              { path: '/dashboard/transport', element: <Transport /> },
-              { path: '/dashboard/diet', element: <Diet /> },
-              { path: '/dashboard/settings', element: <Settings /> },
+              { path: '', element: <General /> },
+              { path: 'energy', element: <Energy /> },
+              { path: 'transport', element: <Transport /> },
+              { path: 'diet', element: <Diet /> },
+              { path: 'settings', element: <Settings /> },
             ]
           },
         ],

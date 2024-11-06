@@ -13,7 +13,7 @@ export default function RootLayout() {
   const navigate = useNavigate()
   const location = useLocation()
 
-  const showNavBar = location.pathname === '/dashboard' || location.pathname === '/'
+  const showNavBar = !location.pathname.includes('/sign-in') && !location.pathname.includes('/sign-up')
 
   return (
     <ClerkProvider
@@ -26,12 +26,12 @@ export default function RootLayout() {
           <NavBar />
         )}
       </header>
-      <main>
+      <main className='max-h-[92vh]'>
         <Outlet />
       </main>
       {showNavBar && (
-          <Footer />
-        )}
+        <Footer />
+      )}
     </ClerkProvider>
   )
 }
