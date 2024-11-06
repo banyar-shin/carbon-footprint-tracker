@@ -46,7 +46,38 @@ def uploadCSV():
     
     except Exception as e:
         return jsonify({"error": f"Failed to read CSV file: {str(e)}"}), 500
-    
 
+
+# Carbon footprint data kg CO2 per kg of food
+food_carbonVal = {
+    "beef": 2.25, # 3oz serving
+    "chicken": 0.434, #3oz serving
+    "pork": 0.587, # 3oz serving
+    "seafood": 0.38, # 3.5oz serving
+    "eggs": 0.20, # 1 Egg
+    "fruits": 0.006, # 5oz serving
+    "vegetables": 0.16 # 1 cup serving
+}
+
+@app.route('/calculate_diet', methods=['POST'])
+def calculate_footprint():
+    # Ask user for MONTHLY INPUT of food intake
+    data = request.get_json()
+    
+    # Extract food consumption data (kg per week)
+    food_data = data.get('foodData', {})
+    
+    # Calculate the total carbon footprint
+    total_carbon = 0
+    for food_item, amount in food_data.items():
+        total_carbon += food_carbonVal.get(food_item, 0) * amount
+    
+    # Calculate the annual carbon footprint
+    weekly_carbon_diet = round((total_carbon * 12)/52,0) # Multiply by 12 months for annual value, then divide by 52 for weekly val
+    
+    return jsonify({
+        "weeklyCarbonFootprint": weekly_carbon_diet,
+    })
+    
 
 app.run(port=5000, debug=True)
