@@ -36,10 +36,6 @@ def parseAnnualCSV():
 
 
 
-parseMonthCSV()
-
-parseAnnualCSV()
-
 
 
 
