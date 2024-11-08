@@ -5,8 +5,10 @@ from pymongo import MongoClient
 from mongopass import mongopass
 import pandas as pd
 from main import *
+from flask_cors import CORS
 
 app = Flask("CFTbackend")
+CORS(app)  # Enable CORS
 
 client = MongoClient(mongopass)
 db = client.curd
