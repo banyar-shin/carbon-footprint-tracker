@@ -4,8 +4,9 @@ import subprocess as sp
 from pymongo import MongoClient
 from mongopass import mongopass
 import pandas as pd
-from main import *
 from flask_cors import CORS
+from main import parseMonthCSV, parseAnnualCSV
+
 
 app = Flask("CFTbackend")
 CORS(app)  # Enable CORS
