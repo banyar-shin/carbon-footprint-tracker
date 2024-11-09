@@ -25,25 +25,26 @@ def parseMonthCSV(file):
     dailyEnergyUsage['Net Energy (kWh)'] = dailyEnergyUsage['IMPORT (kWh)'] - dailyEnergyUsage['EXPORT (kWh)']
     dailyEnergyUsage['Carbon Footprint (Kg CO2)'] = dailyEnergyUsage['Net Energy (kWh)'] * 0.0404
 
-    print(dailyEnergyUsage.head(10))
-    print(df.head(10))
-
     # Structure the data for MongoDB
-    for _, row in df.iterrows():
+    for index, row in df.iterrows():
         detailedEnergyUsageData = {
             "userID": "userID",  # TODO: Add user ID 
             "timestamp": f"{row['DATE']} {row['TIME']}",
             "import_kwh": row["IMPORT (kWh)"],
             "export_kwh": row["EXPORT (kWh)"],
             "net_energy_kwh": row["IMPORT (kWh)"] - row["EXPORT (kWh)"],
-            "carbon_footprint": round((row["IMPORT (kWh)"] - row["EXPORT (kWh)"]) * CO2_PER_KWH, 6)
+            "carbon_footprint": round((row["IMPORT (kWh)"] - row["EXPORT (kWh)"]) * CO2_PER_KWH, 6) 
         }
-        print(detailedEnergyUsageData)
         # Insert structured data into MongoDB TODO
-        # energyUsageCollection.insert_one(energy_usage_data)
+        # Insert into DB, check for duplicate
+        myCollection.update_one(
+            {"timestamp": detailedEnergyUsageData["timestamp"]},
+            {"$set": detailedEnergyUsageData},
+            upsert=True
+        )
 
     
-    for _, row in dailyEnergyUsage.iterrows():
+    for index, row in dailyEnergyUsage.iterrows():
         dailyEnergyData = {
             "userID": "userID",  # TODO: Add user ID 
             "date": row['DATE'],
@@ -53,12 +54,12 @@ def parseMonthCSV(file):
             "carbon_footprint": round(row["Carbon Footprint (Kg CO2)"], 6)
         }
         # Insert structured data into MongoDB TODO
-        '''
-        dailyAggregatesCollection.update_one(
-            {"userID": "userID", "date": row['DATE']}, 
-            {"$set": daily_aggregate_data},
+        # Insert into DB, check for duplicate
+        myCollection.update_one(
+            {"date": dailyEnergyData["date"]},
+            {"$set": dailyEnergyData},
             upsert=True
-        )'''
+        )
         print(dailyEnergyData)
 
     return jsonify({"Pass": "Parsed"}), 200
@@ -74,7 +75,6 @@ def parseAnnualCSV(file):
 
     df = df.rename(columns={'END DATE':'DATE'})
 
-    # TODO add into mongo 
     # Structure data for MongoDB
     monthly_energy_usage_data = [
         {
@@ -85,12 +85,7 @@ def parseAnnualCSV(file):
         for _, row in df.iterrows()
     ]
 
-    # Insert structured data into MongoDB
-    result = myCollection.update_one(
-        {"userID": "userID"},  # TODO add user id
-        {"$push": {"monthlyEnergyUsageData": {"$each": monthly_energy_usage_data}}},
-        upsert=True
-    )
+     # TODO add into mongo 
     return jsonify({"Pass": "Parsed"}), 200
 
 
