@@ -1,6 +1,6 @@
 import pandas as pd
 
-from flask import Flask, render_template, request, jsonify
+from flask import jsonify
 from datetime import datetime, timedelta
 from db import myCollection
 
@@ -30,7 +30,7 @@ def parseMonthCSV(file):
 
     # Structure the data for MongoDB
     for _, row in df.iterrows():
-        energy_usage_data = {
+        detailedEnergyUsageData = {
             "userID": "userID",  # TODO: Add user ID 
             "timestamp": f"{row['DATE']} {row['TIME']}",
             "import_kwh": row["IMPORT (kWh)"],
@@ -38,18 +38,18 @@ def parseMonthCSV(file):
             "net_energy_kwh": row["IMPORT (kWh)"] - row["EXPORT (kWh)"],
             "carbon_footprint": round((row["IMPORT (kWh)"] - row["EXPORT (kWh)"]) * CO2_PER_KWH, 6)
         }
-        print(energy_usage_data)
+        print(detailedEnergyUsageData)
         # Insert structured data into MongoDB TODO
         # energyUsageCollection.insert_one(energy_usage_data)
 
     
     for _, row in dailyEnergyUsage.iterrows():
-        daily_aggregate_data = {
+        dailyEnergyData = {
             "userID": "userID",  # TODO: Add user ID 
             "date": row['DATE'],
             "total_import_kwh": row["IMPORT (kWh)"],
             "total_export_kwh": row["EXPORT (kWh)"],
-            "net_energy_kwh": row["Net Energy (kWh)"],
+            "net_energy_kwh": round(row["Net Energy (kWh)"], 4),
             "carbon_footprint": round(row["Carbon Footprint (Kg CO2)"], 6)
         }
         # Insert structured data into MongoDB TODO
@@ -59,7 +59,7 @@ def parseMonthCSV(file):
             {"$set": daily_aggregate_data},
             upsert=True
         )'''
-        print(daily_aggregate_data)
+        print(dailyEnergyData)
 
     return jsonify({"Pass": "Parsed"}), 200
 
