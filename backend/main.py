@@ -36,8 +36,9 @@ def parseMonthCSV(file):
             "import_kwh": row["IMPORT (kWh)"],
             "export_kwh": row["EXPORT (kWh)"],
             "net_energy_kwh": row["IMPORT (kWh)"] - row["EXPORT (kWh)"],
-            "carbon_footprint": (row["IMPORT (kWh)"] - row["EXPORT (kWh)"]) * CO2_PER_KWH
+            "carbon_footprint": round((row["IMPORT (kWh)"] - row["EXPORT (kWh)"]) * CO2_PER_KWH, 6)
         }
+        print(energy_usage_data)
         # Insert structured data into MongoDB TODO
         # energyUsageCollection.insert_one(energy_usage_data)
 
@@ -49,7 +50,7 @@ def parseMonthCSV(file):
             "total_import_kwh": row["IMPORT (kWh)"],
             "total_export_kwh": row["EXPORT (kWh)"],
             "net_energy_kwh": row["Net Energy (kWh)"],
-            "carbon_footprint": row["Carbon Footprint (Kg CO2)"]
+            "carbon_footprint": round(row["Carbon Footprint (Kg CO2)"], 6)
         }
         # Insert structured data into MongoDB TODO
         '''
@@ -58,6 +59,7 @@ def parseMonthCSV(file):
             {"$set": daily_aggregate_data},
             upsert=True
         )'''
+        print(daily_aggregate_data)
 
     return jsonify({"Pass": "Parsed"}), 200
 
