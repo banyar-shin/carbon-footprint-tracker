@@ -1,8 +1,5 @@
 from flask import Flask, render_template, request, jsonify
 
-import subprocess as sp
-from pymongo import MongoClient
-from mongopass import mongopass
 import pandas as pd
 from flask_cors import CORS
 from main import parseMonthCSV, parseAnnualCSV
@@ -10,10 +7,6 @@ from main import parseMonthCSV, parseAnnualCSV
 
 app = Flask("CFTbackend")
 CORS(app)  # Enable CORS
-
-client = MongoClient(mongopass)
-db = client.curd
-myCollection = db.myColl
 
 
 @app.route("/")
