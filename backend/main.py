@@ -76,16 +76,21 @@ def parseAnnualCSV(file):
     df = df.rename(columns={'END DATE':'DATE'})
 
     # Structure data for MongoDB
-    monthly_energy_usage_data = [
-        {
+    for index, row in df.iterrows():
+        monthlyEnergyData = {
+            "userID": "userID",  # TODO: Add user ID 
             "date": row["DATE"],
             "usage": row["USAGE (kWh)"],
-            "carbon_footprint": row["USAGE (kWh)"] * CO2_PER_KWH  # Calculate Carbon footprint per month
+            "carbon_footprint": round(row["USAGE (kWh)"] * CO2_PER_KWH, 6)  # Calculate Carbon footprint per month
         }
-        for _, row in df.iterrows()
-    ]
+        print(monthlyEnergyData)
+        # Insert into DB, check for duplicate
+        # myCollection.update_one(
+        #     {"date": monthlyEnergyData["date"]},
+        #     {"$set": monthlyEnergyData},
+        #     upsert=True
+        # )
 
-     # TODO add into mongo 
     return jsonify({"Pass": "Parsed"}), 200
 
 

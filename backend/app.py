@@ -8,9 +8,42 @@ app = Flask("CFTbackend")
 CORS(app)  # Enable CORS
 
 
+CO2_PER_KWH = 0.0404
+CO2_DIESEL = 10.19
+CO2_GASOLINE = 9.46
+
 @app.route("/")
 def home():
     return "It works!"
+
+@app.route("/form", methods=["POST"])
+def dailyForm():
+    data = request.get_json()
+
+    # TODO get userID
+    miles_driven = int(data.get("miles_driven"))
+    vehicle_id = int(data.get("vehicle_id"))
+    carpool_count = int(data.get("carpool_count"))
+    electricity_usage_kwh = float(data.get("electricity_usage_kwh"))
+
+    # Calculate carbon footprint based on vehicle type
+    #if #EV
+        
+    carbon_footprint = ((miles_driven * wh_per_mile) / 1000) * CO2_PER_KWH / carpool_count
+
+    #elif #Diesel
+    
+    carbon_footprint = (miles_driven / mpg) * CO2_DIESEL / carpool_count
+
+    #elif #Gas
+        
+    carbon_footprint = (miles_driven / mpg) * CO2_GASOLINE / carpool_count
+
+    #else:
+    return jsonify({"error": "Unknown vehicle type"}), 400
+
+
+
 
 
 @app.route("/upload", methods=["POST"])
