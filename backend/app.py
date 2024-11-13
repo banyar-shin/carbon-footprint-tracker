@@ -3,14 +3,12 @@ from flask import Flask, request, jsonify
 import pandas as pd
 from flask_cors import CORS
 from main import parseMonthCSV, parseAnnualCSV
+from constants import *
+
 
 app = Flask("CFTbackend")
 CORS(app)  # Enable CORS
 
-
-CO2_PER_KWH = 0.0404
-CO2_DIESEL = 10.19
-CO2_GASOLINE = 9.46
 
 @app.route("/")
 def home():
@@ -25,6 +23,14 @@ def dailyForm():
     vehicle_id = int(data.get("vehicle_id"))
     carpool_count = int(data.get("carpool_count"))
     electricity_usage_kwh = float(data.get("electricity_usage_kwh"))
+
+    {
+        "userId": userID,
+        "vehicleID": vehicleID,
+        "fuelType": "EV",
+        "whPerMile": 300,
+        "avgMilesDrivenEstimate": 50
+    }
 
     # Calculate carbon footprint based on vehicle type
     #if #EV
@@ -76,16 +82,7 @@ def uploadCSV():
         return jsonify({"error": f"Failed to read CSV file: {str(e)}"}), 500
 
 
-# Carbon footprint data kg CO2 per kg of food
-food_carbonVal = {
-    "beef": 2.25, # 3oz serving
-    "chicken": 0.434, #3oz serving
-    "pork": 0.587, # 3oz serving
-    "seafood": 0.38, # 3.5oz serving
-    "eggs": 0.20, # 1 Egg
-    "fruits": 0.006, # 5oz serving
-    "vegetables": 0.16 # 1 cup serving
-}
+
 
 @app.route('/calculate_diet', methods=['POST'])
 def calculate_footprint():

@@ -3,6 +3,7 @@ import pandas as pd
 from flask import jsonify
 from datetime import datetime, timedelta
 from db import myCollection
+from constants import *
 
 CO2_PER_KWH = 0.0404
 
@@ -23,7 +24,7 @@ def parseMonthCSV(file):
     }).reset_index()
 
     dailyEnergyUsage['Net Energy (kWh)'] = dailyEnergyUsage['IMPORT (kWh)'] - dailyEnergyUsage['EXPORT (kWh)']
-    dailyEnergyUsage['Carbon Footprint (Kg CO2)'] = dailyEnergyUsage['Net Energy (kWh)'] * 0.0404
+    dailyEnergyUsage['Carbon Footprint (Kg CO2)'] = dailyEnergyUsage['Net Energy (kWh)'] * CO2_PER_KWH
 
     # Structure the data for MongoDB
     for index, row in df.iterrows():
