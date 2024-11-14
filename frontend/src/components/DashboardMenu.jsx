@@ -8,7 +8,7 @@ export default function DashboardMenu() {
   const isActive = (route) => location.pathname === route;
 
   return (
-    <div className="flex flex-col bg-base-200 shadow-md p-4 transition-all min-w-[13vw]">
+    <div className="flex flex-col bg-base-200 shadow-md p-4 transition-all min-w-48">
       <ul className="menu space-y-6">
         <li>
           <button

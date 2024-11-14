@@ -1,7 +1,7 @@
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { SignedIn, SignedOut, UserButton } from '@clerk/clerk-react'
 
-export default function NavBar() {
+export default function NavBar({ toggleMenu }) {
   const navigate = useNavigate()
   const location = useLocation()
 
@@ -12,7 +12,7 @@ export default function NavBar() {
       <div className="navbar bg-base-200 p-5">
         <div className="navbar-start">
           {showSideBarButton && (
-            <div className="btn btn-ghost btn-square">
+            <button onClick={toggleMenu} className="btn btn-ghost btn-square">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 className="h-5 w-5"
@@ -25,7 +25,7 @@ export default function NavBar() {
                   strokeWidth="2"
                   d="M4 6h16M4 12h16M4 18h7" />
               </svg>
-            </div>
+            </button>
           )}
         </div>
         <div className="navbar-center">
