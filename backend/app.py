@@ -5,7 +5,6 @@ from flask_cors import CORS
 from main import parseMonthCSV, parseAnnualCSV
 from constants import *
 
-
 app = Flask("CFTbackend")
 CORS(app)  # Enable CORS
 
@@ -23,14 +22,6 @@ def dailyForm():
     vehicle_id = int(data.get("vehicle_id"))
     carpool_count = int(data.get("carpool_count"))
     electricity_usage_kwh = float(data.get("electricity_usage_kwh"))
-
-    {
-        "userId": userID,
-        "vehicleID": vehicleID,
-        "fuelType": "EV",
-        "whPerMile": 300,
-        "avgMilesDrivenEstimate": 50
-    }
 
     # Calculate carbon footprint based on vehicle type
     #if #EV
@@ -71,9 +62,9 @@ def uploadCSV():
         
         # Check for specific columns to determine parsing method
         if 'START DATE' in df.columns and 'END DATE' in df.columns:
-            return parseAnnualCSV(file)
+            return parseAnnualCSV(file, userID=99)
         elif 'START TIME' in df.columns and 'END TIME' in df.columns:
-            return parseMonthCSV(file)
+            return parseMonthCSV(file, userID=99)
         
         else:
             return jsonify({"error": "Unknown CSV format"}), 400
