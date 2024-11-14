@@ -27,9 +27,9 @@ export default function LandingPage() {
       </div>
 
       {/* Button to Dashboard */}
-      <div className="w-full flex justify-center mb-4">
+      <div className="w-full flex justify-center">
         <Link to="/dashboard">
-          <button className="btn bg-gradient-to-r from-green-400 via-green-500 to-green-600 text-white px-8 py-3 text-lg font-semibold rounded-full shadow-lg transform transition-all duration-300 ease-in-out hover:scale-105 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50">
+          <button className="bg-gradient-to-r from-green-400 via-green-500 to-green-600 text-white px-10 py-4 text-lg font-semibold rounded-full shadow-lg transform transition-all duration-300 ease-in-out hover:scale-105 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50">
             <span className="mr-2">Go to Dashboard</span>
             <FaArrowRight className="inline-block text-xl" />
           </button>
