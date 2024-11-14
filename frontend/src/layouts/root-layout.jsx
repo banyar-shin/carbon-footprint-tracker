@@ -2,6 +2,7 @@ import { Outlet, useNavigate, useLocation } from 'react-router-dom'
 import { ClerkProvider } from '@clerk/clerk-react'
 import NavBar from '../components/NavBar'
 import Footer from '../components/Footer'
+import { useState } from 'react'
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
 
@@ -15,6 +16,9 @@ export default function RootLayout() {
 
   const showNavBar = !location.pathname.includes('/sign-in') && !location.pathname.includes('/sign-up')
 
+  const [showMenu, setShowMenu] = useState(true)
+  const toggleMenu = () => setShowMenu((prev) => !prev)
+
   return (
     <ClerkProvider
       routerPush={(to) => navigate(to)}
@@ -23,11 +27,11 @@ export default function RootLayout() {
     >
       <header className="header">
         {showNavBar && (
-          <NavBar />
+          <NavBar toggleMenu={toggleMenu} />
         )}
       </header>
       <main className='max-h-[92vh]'>
-        <Outlet />
+        <Outlet context={{ showMenu }} />
       </main>
       {showNavBar && (
         <Footer />
