@@ -1,10 +1,12 @@
 import * as React from 'react'
 import { useAuth } from '@clerk/clerk-react'
-import { Outlet, useNavigate } from 'react-router-dom'
+import { Outlet, useNavigate, useOutletContext } from 'react-router-dom'
 
 export default function DashboardLayout() {
   const { userId, isLoaded } = useAuth()
   const navigate = useNavigate()
+
+  const { showMenu } = useOutletContext()
 
   console.log('test', userId)
 
@@ -16,5 +18,5 @@ export default function DashboardLayout() {
 
   if (!isLoaded) return 'Loading...'
 
-  return <Outlet />
+  return <Outlet context={{ showMenu }} />
 }
