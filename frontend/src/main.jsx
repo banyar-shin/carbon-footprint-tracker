@@ -16,6 +16,7 @@ import Energy from './routes/Energy'
 import Transport from './routes/Transport'
 import Diet from './routes/Diet'
 import Settings from './routes/Settings'
+import Tutorial from './routes/Tutorial'
 
 const router = createBrowserRouter([
   {
@@ -38,6 +39,7 @@ const router = createBrowserRouter([
               { path: 'transport', element: <Transport /> },
               { path: 'diet', element: <Diet /> },
               { path: 'settings', element: <Settings /> },
+              { path: 'tutorial', element: <Tutorial /> },
             ]
           },
         ],

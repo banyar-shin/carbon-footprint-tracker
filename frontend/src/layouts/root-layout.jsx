@@ -15,6 +15,7 @@ export default function RootLayout() {
   const location = useLocation()
 
   const showNavBar = !location.pathname.includes('/sign-in') && !location.pathname.includes('/sign-up')
+  const showFooter = !location.pathname.includes('/sign-in') && !location.pathname.includes('/sign-up') && !location.pathname.includes('/dashboard')
 
   const [showMenu, setShowMenu] = useState(true)
   const toggleMenu = () => setShowMenu((prev) => !prev)
@@ -33,7 +34,7 @@ export default function RootLayout() {
       <main className='max-h-[92vh]'>
         <Outlet context={{ showMenu }} />
       </main>
-      {showNavBar && (
+      {showFooter && (
         <Footer />
       )}
     </ClerkProvider>
