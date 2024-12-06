@@ -91,7 +91,7 @@ def transportSettings():
 
 
     # Prepare transportation data
-    transportation_data = {
+    vehicleData = {
         "fuel_type": fuel_type,
         "mpg": mpg,
         "wh_mile": wh_mile,
@@ -102,7 +102,7 @@ def transportSettings():
             {"userID": userID},
             {
                 "$set": {
-                    "transportationData": transportation_data
+                    "vehicleData": vehicleData
                 }
             },
             upsert=True 
