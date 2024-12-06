@@ -4,6 +4,8 @@ import pandas as pd
 from flask_cors import CORS
 from main import parseMonthCSV, parseAnnualCSV
 from constants import *
+from geminiService import gemini_analyze_nutrition, gemini_suggest_sustainable_alternatives
+
 
 app = Flask("CFTbackend")
 CORS(app)  # Enable CORS
@@ -88,12 +90,30 @@ def calculate_footprint():
     for food_item, amount in food_data.items():
         total_carbon += food_carbonVal.get(food_item, 0) * amount
     
-    # Calculate the annual carbon footprint
-    weekly_carbon_diet = round((total_carbon * 12)/52,0) # Multiply by 12 months for annual value, then divide by 52 for weekly val
+    # Calculate the weekly/monthly/annually carbon footprint (in kg of carbon)
+    weekly_carbon_diet = round((total_carbon*12)/52,0) # times 12 (months) divided by 52 (52 weeks)
+    monthly_carbon_diet = round(total_carbon,0)
+    annually_carbon_diet = round(total_carbon*12,0) # times 12 (months)
+
+
+    
+
+    
+    # Call Gemini AI methods
+    nutrition_analysis = gemini_analyze_nutrition(food_data)
+    food_recommendations =  gemini_suggest_sustainable_alternatives(food_data)
+
     
     return jsonify({
-        "weeklyCarbonFootprint": weekly_carbon_diet,
+        "carbonFootprintWeekly": weekly_carbon_diet,
+        "carbonFootprintMonthly": monthly_carbon_diet,
+        "carbonFootprintAnnually": annually_carbon_diet,
+        "nutritionAnalysis": nutrition_analysis,
+        "foodRecommendations": food_recommendations
+
     })
+    
+
     
 
 app.run(port=5000, debug=True)
