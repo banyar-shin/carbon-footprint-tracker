@@ -2,7 +2,7 @@ from flask import Flask, request, jsonify
 
 import pandas as pd
 from flask_cors import CORS
-from main import parseMonthCSV, parseAnnualCSV
+from main import parseMonthCSV, parseAnnualCSV, getEnergyData, getEnergyProduced, getVehicleData
 from constants import *
 from db import myCollection
 
@@ -37,9 +37,12 @@ def dailyForm():
 
     # Calculate carbon footprint based on vehicle type
     if vehicleInfo.get("fuel_type") == "EV":
-        if energyInfo.get("hasSolar") == True and getEnergyProduced(userID, Date):
+        energyInDay = getEnergyProduced(userID, date)
+        # TODO test the carbon_footprint for having solar becuz we have to account for if they charged at home 
+        if energyInfo.get("hasSolar") == True and energyInDay < 0:
+            carbon_footprint =  (getEnergyProduced(userID, date) - ((miles_driven * wh_mile) / 1000)) * CO2_PER_KWH / carpool_count # if solar produced more household consumed
+        else:   
             carbon_footprint = ((miles_driven * wh_mile) / 1000) * CO2_PER_KWH / carpool_count
-        carbon_footprint = ((miles_driven * wh_mile) / 1000) * CO2_PER_KWH / carpool_count
     elif vehicleInfo.get("fuel_type") == "Diesel":
         carbon_footprint = (miles_driven / mpg) * CO2_DIESEL / carpool_count
     elif vehicleInfo.get("fuel_type") == "Gasoline":
@@ -66,34 +69,6 @@ def dailyForm():
     )
     
     return
-
-
-def getVehicleData(userID):
-    try:
-        # Query the MongoDB collection for vehicle information
-        vehicleSettings = myCollection.find_one({"userID": userID})
-        
-        if vehicleSettings:
-            return vehicleSettings.get("transportationData")
-        else:
-            return None  # Return None if no record is found
-    except Exception as e:
-        print(f"Error getting vehicle info: {str(e)}")
-        return None
-    
-
-def getEnergyProduced(userID, date):
-    try:
-        # Query the MongoDB collection for energy produced a specific day
-        energyOnDay = myCollection.find_one({"userID": userID, "dailyEnergyData":date})
-        
-        if energyOnDay:
-            return energyOnDay.get("transportationData")
-        else:
-            return None  # Return None if no record is found
-    except Exception as e:
-        print(f"Error getting energy info: {str(e)}")
-        return None
     
 
 @app.route("/transportation", methods=["POST"])
@@ -160,22 +135,6 @@ def energySettings():
         )
     
     return jsonify({"Pass": "Updated Energy Information"}), 200
-
-
-def getEnergyData(userID):
-    try:
-        # Query the MongoDB collection for vehicle information
-        energySettings = myCollection.find_one({"userID": userID})
-        
-        if energySettings:
-            return energySettings.get("energy_data")
-        else:
-            return None  # Return None if no record is found
-    except Exception as e:
-        print(f"Error getting energy info: {str(e)}")
-        return None
-    
-
 
 
 @app.route("/upload", methods=["POST"])

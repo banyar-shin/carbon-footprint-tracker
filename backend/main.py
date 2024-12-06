@@ -100,6 +100,46 @@ def parseAnnualCSV(file, userID):
 
 
 
+def getVehicleData(userID):
+    try:
+        # Query the MongoDB collection for vehicle information
+        vehicleSettings = myCollection.find_one({"userID": userID})
+        
+        if vehicleSettings:
+            return vehicleSettings.get("transportationData")
+        else:
+            return None  # Return None if no record is found
+    except Exception as e:
+        print(f"Error getting vehicle info: {str(e)}")
+        return None
+    
+def getEnergyData(userID):
+    try:
+        # Query the MongoDB collection for vehicle information
+        energySettings = myCollection.find_one({"userID": userID})
+        
+        if energySettings:
+            return energySettings.get("energy_data")
+        else:
+            return None  # Return None if no record is found
+    except Exception as e:
+        print(f"Error getting energy info: {str(e)}")
+        return None
+
+def getEnergyProduced(userID, date):
+    try:
+        # Query the MongoDB collection for energy produced a specific day
+        energyOnDay = myCollection.find_one({"userID": userID, "dailyEnergyData":date})
+        
+        if energyOnDay:
+            return energyOnDay.get("net_energy_kwh")
+        else:
+            return None  # Return None if no record is found
+    except Exception as e:
+        print(f"Error getting energy info: {str(e)}")
+        return None
+
+
 
 
 
