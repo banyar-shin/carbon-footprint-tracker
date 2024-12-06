@@ -106,7 +106,7 @@ def getVehicleData(userID):
         vehicleSettings = myCollection.find_one({"userID": userID})
         
         if vehicleSettings:
-            return vehicleSettings.get("transportationData")
+            return vehicleSettings.get("vehicleData")
         else:
             return None  # Return None if no record is found
     except Exception as e:

@@ -14,13 +14,15 @@ CORS(app)  # Enable CORS
 def home():
     return "It works!"
 
+# TODO do the EV solar thing
+# TODO the wh_mile None thing
 @app.route("/dailyform", methods=["POST"])
 def dailyForm():
     # default carpool
     carpool_count = 1
 
     data = request.get_json()
-    userID = data.get("userID")
+    userID = request.form.get("userID")
     vehicleInfo = getVehicleData(userID)
     energyInfo = getEnergyData(userID)
 
@@ -35,9 +37,9 @@ def dailyForm():
     mpg = vehicleInfo.get("mpg")
     fuel_type = vehicleInfo.get("fuel_type")
 
-    # TODO FIGURE THIS OUT
     # If user did not enter in Miles Driven use average miles driven to calculate
-    #if miles_driven.isEmpty():
+    # TODO fix
+    #if miles_driven is None:
         #miles_driven = getVehicleData("avg_miles")
 
     #electricity_usage_kwh = float(data.get("electricity_usage_kwh"))
@@ -81,7 +83,7 @@ def dailyForm():
 def transportSettings():
 
     data = request.get_json()
-    userID = data.get("userID")
+    userID = request.form.get("userID")
 
     # Extract data from the request
     fuel_type = data.get("fuel_type")
@@ -115,7 +117,7 @@ def transportSettings():
 def energySettings():
 
     data = request.get_json()
-    userID = data.get("userID")
+    userID = request.form.get("userID")
 
     # Extract data from the request
     avg_month_kw = int(data.get("avg_month_kw"))
@@ -123,7 +125,7 @@ def energySettings():
 
 
     # Prepare power data
-    energy_data = {
+    energyData = {
         "avg_month_kw": avg_month_kw,
         "hasSolar": hasSolar
     }
@@ -132,7 +134,7 @@ def energySettings():
             {"userID": userID},
             {
                 "$set": {
-                    "energy_data": energy_data
+                    "energyData": energyData
                 }
             },
             upsert=True 
@@ -146,8 +148,9 @@ def uploadCSV():
       # Check if a file was uploaded
     if 'file' not in request.files:
         return jsonify({"error": "No file provided"}), 400
-    
-    file = request.files['file']
+
+    file = request.files["file"]
+    userID = request.form.get("userID")
     
     # Ensure the file has content
     if file.filename == '':
@@ -160,9 +163,9 @@ def uploadCSV():
         
         # Check for specific columns to determine parsing method
         if 'START DATE' in df.columns and 'END DATE' in df.columns:
-            return parseAnnualCSV(file, userID=99)
+            return parseAnnualCSV(file, userID)
         elif 'START TIME' in df.columns and 'END TIME' in df.columns:
-            return parseMonthCSV(file, userID=99)
+            return parseMonthCSV(file, userID)
         
         else:
             return jsonify({"error": "Unknown CSV format"}), 400
