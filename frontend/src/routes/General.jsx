@@ -24,7 +24,7 @@ ChartJS.register(
 export default function General() {
   const [timeframe, setTimeframe] = useState('weekly')
 
-  const { userID, _ } = useAuth()
+  const { userId, _ } = useAuth()
   const handleDailyForm = async (event) => {
     event.preventDefault();
     // TODO: implement handleDailyForm function (follow handleUpload)
@@ -52,7 +52,7 @@ export default function General() {
 
       const formData = new FormData();
       formData.append('file', file);
-      formData.append('userID', userID)
+      formData.append('userID', userId)
 
       const response = await fetch("http://localhost:5000/upload", {
         method: 'POST',
