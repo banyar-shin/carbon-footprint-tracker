@@ -4,6 +4,7 @@ import pandas as pd
 from flask_cors import CORS
 from main import parseMonthCSV, parseAnnualCSV
 from constants import *
+from db import myCollection
 
 app = Flask("CFTbackend")
 CORS(app)  # Enable CORS
@@ -15,31 +16,46 @@ def home():
 
 @app.route("/form", methods=["POST"])
 def dailyForm():
+    # default carpool
+    carpool_count = 1
+
+    # Get from session attributes
+    # TODO get userID
+    vehicle_id = int(data.get("vehicle_id"))
+    vehicleInfo = getVehicleInfo(vehicle_id)
+
     data = request.get_json()
 
-    # TODO get userID
-    miles_driven = int(data.get("miles_driven"))
-    vehicle_id = int(data.get("vehicle_id"))
+    # Get from form
+    miles_driven = int(data.get("miles_driven"))    
     carpool_count = int(data.get("carpool_count"))
     electricity_usage_kwh = float(data.get("electricity_usage_kwh"))
 
     # Calculate carbon footprint based on vehicle type
-    #if #EV
-        
-    carbon_footprint = ((miles_driven * wh_per_mile) / 1000) * CO2_PER_KWH / carpool_count
-
-    #elif #Diesel
+    if vehicleInfo == "EV":
+        carbon_footprint = ((miles_driven * wh_per_mile) / 1000) * CO2_PER_KWH / carpool_count
+    elif vehicleInfo == "Diesel":
+        carbon_footprint = (miles_driven / mpg) * CO2_DIESEL / carpool_count
+    elif vehicleInfo == "Gasoline":
+        carbon_footprint = (miles_driven / mpg) * CO2_GASOLINE / carpool_count
+    else:
+        return jsonify({"error": "Unknown vehicle type"}), 400
     
-    carbon_footprint = (miles_driven / mpg) * CO2_DIESEL / carpool_count
+    return
 
-    #elif #Gas
+
+def getVehicleInfo(vehicle_id):
+    try:
+        # Query the MongoDB collection for vehicle information
+        vehicle_info = myCollection.find_one({"vehicleID": vehicle_id})
         
-    carbon_footprint = (miles_driven / mpg) * CO2_GASOLINE / carpool_count
-
-    #else:
-    return jsonify({"error": "Unknown vehicle type"}), 400
-
-
+        if vehicle_info:
+            return vehicle_info.get("vehicleInfo")
+        else:
+            return None  # Return None if no record is found
+    except Exception as e:
+        print(f"Error querying vehicle info: {str(e)}")
+        return None
 
 
 

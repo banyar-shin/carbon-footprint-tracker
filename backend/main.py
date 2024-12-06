@@ -5,8 +5,6 @@ from datetime import datetime, timedelta
 from db import myCollection
 from constants import *
 
-CO2_PER_KWH = 0.0404
-
 def parseMonthCSV(file, userID):
 
     df = pd.read_csv(file, skiprows = 5)
@@ -30,6 +28,7 @@ def parseMonthCSV(file, userID):
     # Prepare detailed energy usage data
     detailedEnergyUsageData = []
     for index, row in df.iterrows():
+        # TODO  so only get it every 30 or 45 min or 1 hour
         detailedEnergyUsageData.append({
             "timestamp": f"{row['DATE']} {row['TIME']}",
             "import_kwh": row["IMPORT (kWh)"],
