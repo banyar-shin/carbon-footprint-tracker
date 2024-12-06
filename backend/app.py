@@ -29,23 +29,30 @@ def dailyForm():
     date = data.get("date")
     miles_driven = int(data.get("miles_driven"))    
     carpool_count = int(data.get("carpool_count"))
+   
+
     wh_mile = vehicleInfo.get("wh_mile")
     mpg = vehicleInfo.get("mpg")
+    fuel_type = vehicleInfo.get("fuel_type")
 
+    # TODO FIGURE THIS OUT
+    # If user did not enter in Miles Driven use average miles driven to calculate
+    #if miles_driven.isEmpty():
+        #miles_driven = getVehicleData("avg_miles")
 
-    electricity_usage_kwh = float(data.get("electricity_usage_kwh"))
+    #electricity_usage_kwh = float(data.get("electricity_usage_kwh"))
 
     # Calculate carbon footprint based on vehicle type
-    if vehicleInfo.get("fuel_type") == "EV":
+    if fuel_type == "EV":
         energyInDay = getEnergyProduced(userID, date)
         # TODO test the carbon_footprint for having solar becuz we have to account for if they charged at home 
         if energyInfo.get("hasSolar") == True and energyInDay < 0:
             carbon_footprint =  (getEnergyProduced(userID, date) - ((miles_driven * wh_mile) / 1000)) * CO2_PER_KWH / carpool_count # if solar produced more household consumed
         else:   
             carbon_footprint = ((miles_driven * wh_mile) / 1000) * CO2_PER_KWH / carpool_count
-    elif vehicleInfo.get("fuel_type") == "Diesel":
+    elif fuel_type == "Diesel":
         carbon_footprint = (miles_driven / mpg) * CO2_DIESEL / carpool_count
-    elif vehicleInfo.get("fuel_type") == "Gasoline":
+    elif fuel_type == "Gasoline":
         carbon_footprint = (miles_driven / mpg) * CO2_GASOLINE / carpool_count
     else:
         return jsonify({"error": "Unknown vehicle type"}), 400
@@ -57,20 +64,19 @@ def dailyForm():
     }
     
     # Insert into MongoDB 
-    myCollection.update_one(
-        {"userID": userID},
+    myCollection.update_one({"userID": userID},
         {
-            "$set": {
-                "userID": userID,
-                "carbon_footprint": carbon_footprint
+            "$push": {
+            "transportationData": carbon_footprint
             }
+           
         },
         upsert=True
     )
     
     return
     
-
+# Working 12-6-2024
 @app.route("/transportation", methods=["POST"])
 def transportSettings():
 
@@ -96,7 +102,6 @@ def transportSettings():
             {"userID": userID},
             {
                 "$set": {
-                    "userID": userID,
                     "transportationData": transportation_data
                 }
             },
@@ -127,7 +132,6 @@ def energySettings():
             {"userID": userID},
             {
                 "$set": {
-                    "userID": userID,
                     "energy_data": energy_data
                 }
             },
