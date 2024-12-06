@@ -9,7 +9,6 @@ app = Flask(__name__)
 GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent"
 
 
-
 def gemini_analyze_nutrition(food_data):
     payload = {
         "contents": [
@@ -26,25 +25,23 @@ def gemini_analyze_nutrition(food_data):
             }
         ]
     }
-    headers = {
-        "Content-Type": "application/json"
-    }
-    
-    response = requests.post(f"{GEMINI_API_URL}?key={GEMINI_API_KEY}", json=payload, headers=headers)
+    headers = {"Content-Type": "application/json"}
+
+    response = requests.post(
+        f"{GEMINI_API_URL}?key={GEMINI_API_KEY}", json=payload, headers=headers
+    )
     cleaned_text = ""
 
     if response.status_code == 200:
         response_data = response.json()
-        candidates = response_data.get('candidates', [])
-        content = candidates[0].get('content', {})
-        parts = content.get('parts', [])
-        response_text = parts[0].get('text', '')
+        candidates = response_data.get("candidates", [])
+        content = candidates[0].get("content", {})
+        parts = content.get("parts", [])
+        response_text = parts[0].get("text", "")
         cleaned_text = response_text.strip()
         return cleaned_text
     else:
         return {"error": "Failed to extract text from Gemini AI response"}
-
-
 
 
 def gemini_suggest_sustainable_alternatives(food_data):
@@ -61,20 +58,21 @@ def gemini_suggest_sustainable_alternatives(food_data):
             }
         ]
     }
-    headers = {
-        "Content-Type": "application/json"
-    }
-      
-    response = requests.post(f"{GEMINI_API_URL}?key={GEMINI_API_KEY}", json=payload, headers=headers)
+    headers = {"Content-Type": "application/json"}
+
+    response = requests.post(
+        f"{GEMINI_API_URL}?key={GEMINI_API_KEY}", json=payload, headers=headers
+    )
     cleaned_text = ""
 
     if response.status_code == 200:
         response_data = response.json()
-        candidates = response_data.get('candidates', [])
-        content = candidates[0].get('content', {})
-        parts = content.get('parts', [])
-        response_text = parts[0].get('text', '')
+        candidates = response_data.get("candidates", [])
+        content = candidates[0].get("content", {})
+        parts = content.get("parts", [])
+        response_text = parts[0].get("text", "")
         cleaned_text = response_text.strip()
         return cleaned_text
     else:
         return {"error": "Failed to extract text from Gemini AI response"}
+
