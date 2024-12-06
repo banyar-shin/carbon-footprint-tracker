@@ -5,8 +5,6 @@ from datetime import datetime, timedelta
 from db import myCollection
 from constants import *
 
-CO2_PER_KWH = 0.0404
-
 def parseMonthCSV(file, userID):
 
     df = pd.read_csv(file, skiprows = 5)
@@ -30,6 +28,7 @@ def parseMonthCSV(file, userID):
     # Prepare detailed energy usage data
     detailedEnergyUsageData = []
     for index, row in df.iterrows():
+        # TODO  so only get it every 30 or 45 min or 1 hour
         detailedEnergyUsageData.append({
             "timestamp": f"{row['DATE']} {row['TIME']}",
             "import_kwh": row["IMPORT (kWh)"],
@@ -99,6 +98,46 @@ def parseAnnualCSV(file, userID):
 
     return jsonify({"Pass": "Parsed"}), 200
 
+
+
+def getVehicleData(userID):
+    try:
+        # Query the MongoDB collection for vehicle information
+        vehicleSettings = myCollection.find_one({"userID": userID})
+        
+        if vehicleSettings:
+            return vehicleSettings.get("vehicleData")
+        else:
+            return None  # Return None if no record is found
+    except Exception as e:
+        print(f"Error getting vehicle info: {str(e)}")
+        return None
+    
+def getEnergyData(userID):
+    try:
+        # Query the MongoDB collection for vehicle information
+        energySettings = myCollection.find_one({"userID": userID})
+        
+        if energySettings:
+            return energySettings.get("energy_data")
+        else:
+            return None  # Return None if no record is found
+    except Exception as e:
+        print(f"Error getting energy info: {str(e)}")
+        return None
+
+def getEnergyProduced(userID, date):
+    try:
+        # Query the MongoDB collection for energy produced a specific day
+        energyOnDay = myCollection.find_one({"userID": userID, "dailyEnergyData":date})
+        
+        if energyOnDay:
+            return energyOnDay.get("net_energy_kwh")
+        else:
+            return None  # Return None if no record is found
+    except Exception as e:
+        print(f"Error getting energy info: {str(e)}")
+        return None
 
 
 

@@ -8,12 +8,12 @@ export default function DashboardPage() {
   return (
     <div className="max-h-[92vh] flex">
       {/* Adjust the width of the sidebar based on showMenu */}
-      <div className={`flex transition-all duration-300 ${showMenu ? 'w-64' : 'w-0'} overflow-hidden`}>
+      <div className={`flex transition-all duration-200 ${showMenu ? 'w-48' : 'w-0'} overflow-hidden`}>
         <DashboardMenu />
       </div>
 
       {/* Content area */}
-      <div className={`flex-grow transition-all duration-300`}>
+      <div className={`flex-grow h-[92vh] transition-all duration-200 ${!showMenu ? 'w-[calc(100%-12rem)]' : 'w-0'}`}>
         <Outlet />
       </div>
     </div>
