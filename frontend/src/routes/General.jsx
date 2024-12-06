@@ -25,10 +25,12 @@ export default function General() {
   const [timeframe, setTimeframe] = useState('weekly')
 
   const { userId, _ } = useAuth()
+
   const handleDailyForm = async (event) => {
     event.preventDefault();
     // TODO: implement handleDailyForm function (follow handleUpload)
   }
+
   const handleUpload = async (event) => {
     event.preventDefault();
 
