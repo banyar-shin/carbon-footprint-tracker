@@ -9,6 +9,7 @@ import {
   Tooltip,
   Legend,
 } from 'chart.js'
+import { useAuth } from '@clerk/clerk-react'
 
 // Register ChartJS components
 ChartJS.register(
@@ -21,10 +22,13 @@ ChartJS.register(
 )
 
 export default function General() {
-  const [isCSVModalOpen, setIsCSVModalOpen] = useState(false)
-  const [isAddDataModalOpen, setIsAddDataModalOpen] = useState(false)
   const [timeframe, setTimeframe] = useState('weekly')
 
+  const { userID, _ } = useAuth()
+  const handleDailyForm = async (event) => {
+    event.preventDefault();
+    // TODO: implement handleDailyForm function (follow handleUpload)
+  }
   const handleUpload = async (event) => {
     event.preventDefault();
 
@@ -42,12 +46,13 @@ export default function General() {
     }
 
     try {
-      const user = await Clerk.user.current();
-      const uid = user.id;
+      if (!userId) {
+        throw new Error('Upload failed: Invalid UserID')
+      }
 
       const formData = new FormData();
       formData.append('file', file);
-      formData.append('uid', uid)
+      formData.append('userID', userID)
 
       const response = await fetch("http://localhost:5000/upload", {
         method: 'POST',
@@ -172,16 +177,22 @@ export default function General() {
       </dialog>
 
       <dialog id="add_data_modal" className="modal">
-        <div className="modal-box w-9/12 max-w-5xl">
+        <div className="modal-box w-[48rem] max-w-5xl">
           <form method="dialog">
             <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
           </form>
-          <h3 className="font-bold text-xl">Enter Today's Data</h3>
-          <form className="w-full bg-base-100 pt-4">
-            <h3 className='text-lg text-left font-semibold'>Date</h3>
+          <h3 className="font-bold w-full text-xl py-6">Add Today's Data</h3>
+          <form onSubmit={handleDailyForm} className='w-full flex flex-col px-6 py-12 rounded-xl bg-base-200 justify-center items-center'>
+            {/* TODO: Daily Form: Use components from here: https://daisyui.com/components/select/ */}
+            <div className='divider' />
+            <div className='w-full px-24'>
+              <button type="submit" className="btn btn-primary w-full">
+                Submit
+              </button>
+            </div>
           </form>
         </div>
-      </dialog>
-    </div>
+      </dialog >
+    </div >
   );
 }

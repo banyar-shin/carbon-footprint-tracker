@@ -8,15 +8,18 @@ export default function DashboardLayout() {
 
   const { showMenu } = useOutletContext()
 
-  console.log('test', userId)
-
   React.useEffect(() => {
     if (isLoaded && !userId) {
       navigate('/sign-in')
     }
   }, [isLoaded])
 
-  if (!isLoaded) return 'Loading...'
+  if (!isLoaded) return (
+    <div id="error-page" className="flex flex-col w-full h-screen items-center justify-center text-center text-base-content">
+      <h1 className="text-3xl font-bold">Loading...</h1>
+      <p className="text-xl">Thank you for your patience.</p>
+    </div>
+  );
 
   return <Outlet context={{ showMenu }} />
 }

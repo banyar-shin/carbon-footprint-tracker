@@ -50,7 +50,7 @@ export default function DashboardMenu() {
         </li>
       </ul>
 
-      <div class="divider mt-auto mb-2" />
+      <div className="divider mt-auto mb-2" />
 
       <ul className="menu menu-horizontal w-full grid grid-cols-2 gap-3">
         <li>
