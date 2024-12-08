@@ -167,8 +167,11 @@ def uploadCSV():
 
 @app.route("/calculate_diet", methods=["POST"])
 def calculate_footprint():
+
+    userID = request.form.get("userID")
     # Ask user for MONTHLY INPUT of food intake
     data = request.get_json()
+    
 
     # Extract food consumption data (kg per week)
     food_data = data.get("foodData", {})
@@ -189,6 +192,24 @@ def calculate_footprint():
     nutrition_analysis = gemini_analyze_nutrition(food_data)
     food_recommendations = gemini_suggest_sustainable_alternatives(food_data)
 
+    footprint_data = {
+        "userID": userID,
+        "carbonFootprint": {
+            "weekly": weekly_carbon_diet,
+            "monthly": monthly_carbon_diet,
+            "annually": annually_carbon_diet,
+        },
+        "nutritionAnalysis": nutrition_analysis,
+        "foodRecommendations": food_recommendations,
+    }
+
+    # Insert or update the MongoDB document
+    myCollection.update_one(
+        {"userID": userID},  
+        {"$set": footprint_data},  
+        upsert=True  
+    )
+
     return jsonify(
         {
             "carbonFootprintWeekly": weekly_carbon_diet,
@@ -198,6 +219,8 @@ def calculate_footprint():
             "foodRecommendations": food_recommendations,
         }
     )
+
+
 
 
 if __name__ == "__main__":
