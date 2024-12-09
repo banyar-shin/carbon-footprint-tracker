@@ -1,5 +1,6 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import { FaQuestionCircle, FaHome, FaBatteryFull, FaCar, FaUtensils, FaCog } from 'react-icons/fa'; // Adding some icons
+import { RiQuestionAnswerFill } from "react-icons/ri";
 
 export default function DashboardMenu() {
   const navigate = useNavigate();
@@ -46,19 +47,15 @@ export default function DashboardMenu() {
             Diet
           </button>
         </li>
-        <li>
-        </li>
       </ul>
-
-      <div className="divider mt-auto mb-2" />
-
-      <ul className="menu menu-horizontal w-full grid grid-cols-2 gap-3">
+      <ul className="menu w-full mt-auto space-y-6">
         <li>
           <button
-            className={`btn btn-primary w-full rounded-lg transition-all duration-300 ${isActive('/dashboard/settings') ? 'text-white btn-active border border-white' : ''}`}
-            onClick={() => navigate('/dashboard/settings')}
+            className={`btn btn-primary w-full rounded-lg transition-all duration-300 ${isActive('/dashboard/tutorial') ? 'text-white btn-active border border-white' : ''}`}
+            onClick={() => navigate('/dashboard/faq')}
           >
-            <FaCog className="text-xl" />
+            <RiQuestionAnswerFill className="text-xl" />
+            FAQ
           </button>
         </li>
         <li>
@@ -67,6 +64,7 @@ export default function DashboardMenu() {
             onClick={() => navigate('/dashboard/tutorial')}
           >
             <FaQuestionCircle className="text-xl" />
+            Tutorial
           </button>
         </li>
       </ul>

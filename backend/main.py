@@ -131,7 +131,7 @@ def getEnergyData(userID):
         energySettings = myCollection.find_one({"userID": userID})
 
         if energySettings:
-            return energySettings.get("energy_data")
+            return energySettings.get("energyData")
         else:
             return None  # Return None if no record is found
     except Exception as e:
