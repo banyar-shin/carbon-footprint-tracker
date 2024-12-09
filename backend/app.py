@@ -18,7 +18,7 @@ from db import myCollection
 
 
 app = Flask("CFTbackend")
-CORS(app)  # Enable CORS
+CORS(app, resources={r"/*": {"origins": "*"}})
 
 
 @app.route("/")
@@ -167,16 +167,19 @@ def uploadCSV():
 
 @app.route("/calculate_diet", methods=["POST"])
 def calculate_footprint():
-    # Ask user for MONTHLY INPUT of food intake
+
     data = request.get_json()
 
-    # Extract food consumption data (kg per week)
-    food_data = data.get("foodData", {})
-
-    # Calculate the total carbon footprint
     total_carbon = 0
-    for food_item, amount in food_data.items():
-        total_carbon += food_carbonVal.get(food_item, 0) * amount
+
+    for food, frequency in data["diet"].items():
+        print(food, frequency)
+        total_carbon += food_carbonVal.get(food) * frequency_multiplier.get(frequency)
+        print(total_carbon)
+
+    for food, frequency in data["plantBasedFoods"].items():
+        total_carbon += food_carbonVal.get(food) * frequency_multiplier.get(frequency)
+        print(total_carbon)
 
     # Calculate the weekly/monthly/annually carbon footprint (in kg of carbon)
     weekly_carbon_diet = round(
@@ -186,8 +189,8 @@ def calculate_footprint():
     annually_carbon_diet = round(total_carbon * 12, 0)  # times 12 (months)
 
     # Call Gemini AI methods
-    nutrition_analysis = gemini_analyze_nutrition(food_data)
-    food_recommendations = gemini_suggest_sustainable_alternatives(food_data)
+    nutrition_analysis = gemini_analyze_nutrition(data)
+    food_recommendations = gemini_suggest_sustainable_alternatives(data)
 
     return jsonify(
         {
@@ -201,4 +204,4 @@ def calculate_footprint():
 
 
 if __name__ == "__main__":
-    app.run(port=5000, debug=True)
+    app.run(port=5001, debug=True)
