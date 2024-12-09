@@ -17,7 +17,7 @@ import Transport from './routes/Transport'
 import Diet from './routes/Diet'
 import Settings from './routes/Settings'
 import Tutorial from './routes/Tutorial'
-//import FAQ from './routes/Faq'
+import FAQ from './routes/Faq'
 
 
 const router = createBrowserRouter([
