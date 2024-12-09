@@ -48,8 +48,7 @@ export default function DashboardMenu() {
           </button>
         </li>
       </ul>
-      <div className="divider mt-auto mb-2" />
-      <ul className="menu w-full gap-3">
+      <ul className="menu w-full mt-auto space-y-6">
         <li>
           <button
             className={`btn btn-primary w-full rounded-lg transition-all duration-300 ${isActive('/dashboard/tutorial') ? 'text-white btn-active border border-white' : ''}`}
