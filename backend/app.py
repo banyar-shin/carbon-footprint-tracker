@@ -4,10 +4,13 @@ import pandas as pd
 from flask_cors import CORS
 from main import (
     parseMonthCSV,
+    parseMonthCSVSolar,
     parseAnnualCSV,
     getEnergyData,
     getEnergyProduced,
     getVehicleData,
+    setSolarFalse,
+    setSolarTrue,
 )
 from constants import *
 from geminiService import (
@@ -26,8 +29,6 @@ def home():
     return "It works!"
 
 
-# TODO do the EV solar thing
-# TODO the wh_mile None thing
 @app.route("/dailyform", methods=["POST"])
 def dailyForm():
     # default carpool
@@ -138,7 +139,11 @@ def uploadCSV():
         # Check for specific columns to determine parsing method
         if "START DATE" in df.columns and "END DATE" in df.columns:
             return parseAnnualCSV(file, userID)
-        elif "START TIME" in df.columns and "END TIME" in df.columns:
+        elif "START TIME" in df.columns and "END TIME" in df.columns and "EXPORT (kWh)" in df.columns:
+            setSolarTrue(userID) 
+            return parseMonthCSVSolar(file, userID)
+        elif "START TIME" in df.columns and "END TIME" in df.columns and "USAGE (kWh)" in df.columns:
+            setSolarFalse(userID)
             return parseMonthCSV(file, userID)
 
         else:
