@@ -28,7 +28,6 @@ export default function General() {
   const [vehicleDataExists, setVehicleDataExists] = useState(false);
   const navigate = useNavigate();
 
-
   const checkVehicleData = async () => {
     if (!userId) return;
 
@@ -38,11 +37,9 @@ export default function General() {
 
       const data = await response.json();
       if (data) {
-        // Vehicle data exists
         setVehicleDataExists(true);
         document.getElementById('add_data_modal').showModal();
       } else {
-        // Redirect user to transportation settings if data doesn't exist
         alert("You need to configure your transportation settings first.");
         navigate("/dashboard/transport");
       }
@@ -57,7 +54,7 @@ export default function General() {
 
     const formData = new FormData(event.target)
     const milesDriven = formData.get('miles_driven')
-    const carpool = formData.get('carpool') === 'yes' ? 1 : 0
+    const carpool = formData.get('carpool') ? parseInt(formData.get('carpool'), 10) : 0; // Parse the carpool value as an integer
 
     try {
       if (!userId) {
@@ -67,7 +64,7 @@ export default function General() {
       const data = {
         date: new Date().toLocaleDateString('en-US'),
         miles_driven: parseInt(milesDriven, 10),
-        carpool_count: carpool,
+        carpool_count: carpool, // Send the integer value to the backend
         userID: userId,
       }
 
@@ -87,24 +84,9 @@ export default function General() {
       document.getElementById('add_data_modal').close()
     } catch (error) {
       console.error('Error submitting data:', error)
-      alert('Failed to submit data. Please try again.')
-
+      alert('Failed to submit data. Please try again.');
     }
   }
-
-
-    // TODO: implement handleDailyForm function (follow handleUpload)
-
-
-
-
-
-
-
-
-
-
-
 
   const handleUpload = async (event) => {
     event.preventDefault();
@@ -144,7 +126,6 @@ export default function General() {
       console.log('Upload successful:', data);
 
       fileInput.value = '';
-
       document.getElementById('upload_csv_modal').close();
 
       alert('File uploaded successfully!');
@@ -253,7 +234,7 @@ export default function General() {
         </div>
       </dialog>
 
-    <dialog id="add_data_modal" className="modal">
+      <dialog id="add_data_modal" className="modal">
         <div className="modal-box w-[48rem] max-w-5xl">
           <form method="dialog">
             <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
@@ -268,12 +249,9 @@ export default function General() {
             </label>
             <label className="form-control w-full max-w-xs">
               <div className="label">
-                <span className="label-text font-semibold">Carpool?</span>
+                <span className="label-text font-semibold">Carpool Count</span>
               </div>
-              <select name="carpool" className="select select-bordered max-w-xs" required>
-                <option value="no">No</option>
-                <option value="yes">Yes</option>
-              </select>
+              <input type="number" name="carpool" className="input input-bordered max-w-xs" required />
             </label>
             <div className="divider" />
             <div className="w-full px-24">
