@@ -2,6 +2,7 @@ import pandas as pd
 
 from flask import jsonify
 from datetime import datetime, timedelta
+from dateutil import parser
 from db import myCollection
 from constants import *
 
@@ -11,6 +12,10 @@ def parseMonthCSV(file, userID):
 
     # Drop the START TIME AND NOTES AND TYPE
     df = df.drop(columns=["TYPE", "START TIME", "NOTES"])
+
+
+    # Standardize the 'DATE' column
+    df["DATE"] = df["DATE"].apply(standardize_date)
 
     # Add 1 minute to each END TIME and rename it to TIME
     df["TIME"] = df["END TIME"].apply(
@@ -37,18 +42,18 @@ def parseMonthCSV(file, userID):
     # Prepare detailed energy usage data
     detailedEnergyUsageData = []
     for index, row in df.iterrows():
-        # TODO  so only get it every 30 or 45 min or 1 hour
-        detailedEnergyUsageData.append(
-            {
-                "timestamp": f"{row['DATE']} {row['TIME']}",
-                "import_kwh": row["IMPORT (kWh)"],
-                "export_kwh": row["EXPORT (kWh)"],
-                "net_energy_kwh": row["IMPORT (kWh)"] - row["EXPORT (kWh)"],
-                "carbon_footprint": round(
-                    (row["IMPORT (kWh)"] - row["EXPORT (kWh)"]) * CO2_PER_KWH, 6
-                ),
-            }
-        )
+        if index % 30 == 0: # Every 30 minutes
+            detailedEnergyUsageData.append(
+                {
+                    "timestamp": f"{row['DATE']} {row['TIME']}",
+                    "import_kwh": row["IMPORT (kWh)"],
+                    "export_kwh": row["EXPORT (kWh)"],
+                    "net_energy_kwh": row["IMPORT (kWh)"] - row["EXPORT (kWh)"],
+                    "carbon_footprint": round(
+                        (row["IMPORT (kWh)"] - row["EXPORT (kWh)"]) * CO2_PER_KWH, 6
+                    ),
+                }
+            )
 
     # Prepare daily energy data
     dailyEnergyData = []
@@ -61,22 +66,14 @@ def parseMonthCSV(file, userID):
                 "net_energy_kwh": round(row["Net Energy (kWh)"], 4),
                 "carbon_footprint": round(row["Carbon Footprint (Kg CO2)"], 6),
             }
-        )
+            )
+        return jsonify({"Pass": "Parsed"}), 200
 
-    # Insert into MongoDB
-    myCollection.update_one(
-        {"userID": userID},
-        {
-            "$set": {
-                "userID": userID,
-                "detailedEnergyUsageData": detailedEnergyUsageData,
-                "dailyEnergyData": dailyEnergyData,
-            }
-        },
-        upsert=True,
-    )
 
-    return jsonify({"Pass": "Parsed"}), 200
+
+def standardize_date(dateString):
+    return parser.parse(dateString).strftime("%Y-%m-%d")
+      
 
 
 def parseAnnualCSV(file, userID):
@@ -104,7 +101,7 @@ def parseAnnualCSV(file, userID):
     # Insert into MongoDB
     myCollection.update_one(
         {"userID": userID},
-        {"$set": {"userID": userID, "monthlyEnergyData": monthlyEnergyData}},
+        {"$push": {"monthlyEnergyData": monthlyEnergyData}},
         upsert=True,
     )
 
@@ -145,7 +142,7 @@ def getEnergyProduced(userID, date):
         energyOnDay = myCollection.find_one({"userID": userID, "dailyEnergyData": date})
 
         if energyOnDay:
-            return energyOnDay.get("net_energy_kwh")
+            return energyOnDay.get("total_export_kwh")
         else:
             return None  # Return None if no record is found
     except Exception as e:
