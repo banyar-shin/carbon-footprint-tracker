@@ -34,7 +34,12 @@ def checkVehicleData():
         # Extract userID from the query string
         userID = request.args.get("userID")
         # Query the MongoDB collection for vehicle information
-        vehicleSettings = myCollection.find_one({"userID": userID})
+        vehicleSettings = myCollection.find_one({"userID": userID, "vehicleData": {"$exists": True}})
+
+
+
+
+
 
         if vehicleSettings:
             return jsonify({"success": True, "vehicleData": vehicleSettings.get("vehicleData")}), 200
