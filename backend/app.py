@@ -25,17 +25,36 @@ CORS(app, resources={r"/*": {"origins": "*"}})
 def home():
     return "It works!"
 
+@app.route("/checkVehicle", methods=["GET"])
+def checkVehicleData():
+    try:
+        # Extract userID from the query string
+        userID = request.args.get("userID")
+        # Query the MongoDB collection for vehicle information
+        vehicleSettings = myCollection.find_one({"userID": userID})
 
-# TODO do the EV solar thing
-# TODO the wh_mile None thing
+        if vehicleSettings:
+            return jsonify({"success": True, "vehicleData": vehicleSettings.get("vehicleData")}), 200
+        else:
+            return jsonify({"success": False}), 200
+    except Exception as e:
+        print(f"Error getting vehicle info: {str(e)}")
+        return None
+
 @app.route("/dailyform", methods=["POST"])
 def dailyForm():
     # default carpool
     carpool_count = 1
     data = request.get_json()
     userID = data.get("userID")
+
+    if not userID:
+        return jsonify({"Error": "userID is required"}), 400
+    
     vehicleInfo = getVehicleData(userID)
+
     energyInfo = getEnergyData(userID)
+
 
     # Get from form
     date = data.get("date")
