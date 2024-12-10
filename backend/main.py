@@ -43,7 +43,9 @@ def parseMonthCSVSolar(file, userID):
     # Prepare detailed energy usage data
     detailedEnergyUsageData = []
     for index, row in df.iterrows():
-        if index % 30 == 0: # Every 30 minutes
+        # Parse the time string into a datetime object
+        time_obj = datetime.strptime(row["TIME"], "%H:%M")
+        if time_obj.minute == 30 or time_obj.minute == 00:  
             detailedEnergyUsageData.append(
                 {
                     "timestamp": f"{row['DATE']} {row['TIME']}",
@@ -116,7 +118,9 @@ def parseMonthCSV(file, userID):
     # Prepare detailed energy usage data
     detailedEnergyUsageData = []
     for index, row in df.iterrows():
-        if index % 30 == 0: # Every 30 minutes
+        # Parse the time string into a datetime object
+        time_obj = datetime.strptime(row["TIME"], "%H:%M")
+        if time_obj.minute == 30 or time_obj.minute == 00:  
             detailedEnergyUsageData.append(
                 {
                     "timestamp": f"{row['DATE']} {row['TIME']}",
