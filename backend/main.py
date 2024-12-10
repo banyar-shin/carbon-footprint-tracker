@@ -25,6 +25,10 @@ def parseMonthCSV(file, userID):
     )
     df = df.drop(columns=["END TIME"])
 
+    # Check if there are non-zero values in the EXPORT (kWh) column
+    if (df["EXPORT (kWh)"] > 0).any():
+        setSolarTrue(userID)
+
     # Calculate daily energy usage (including import and export)
     dailyEnergyUsage = (
         df.groupby("DATE")
@@ -79,6 +83,11 @@ def parseMonthCSV(file, userID):
         },
         upsert=True,
     )
+
+    energyInfo = getEnergyData(userID)
+
+    if energyInfo.get("hasSolar") != True:
+        setSolarFalse(userID)
 
     return jsonify({"Pass": "Parsed"}), 200
 
@@ -161,3 +170,20 @@ def getEnergyProduced(userID, date):
     except Exception as e:
         print(f"Error getting energy info: {str(e)}")
         return None
+
+def setSolarTrue(userID):
+    # Prepare power data
+    energyData = {"hasSolar": True}
+
+    myCollection.update_one(
+        {"userID": userID}, {"$set": {"energyData": energyData}}, upsert=True
+    )
+    
+
+def setSolarFalse(userID):
+    # Prepare power data
+    energyData = {"hasSolar": False}
+
+    myCollection.update_one(
+        {"userID": userID}, {"$set": {"energyData": energyData}}, upsert=True
+    )

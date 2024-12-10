@@ -116,23 +116,6 @@ def transportSettings():
     return jsonify({"Pass": "Updated Transportation Information"}), 200
 
 
-@app.route("/energy", methods=["POST"])
-def energySettings():
-    data = request.get_json()
-    userID = data.get("userID")
-
-    # Extract data from the request
-    hasSolar = bool(data.get("hasSolar"))
-
-    # Prepare power data
-    energyData = {"hasSolar": hasSolar}
-
-    myCollection.update_one(
-        {"userID": userID}, {"$set": {"energyData": energyData}}, upsert=True
-    )
-
-    return jsonify({"Pass": "Updated Energy Information"}), 200
-
 
 @app.route("/upload", methods=["POST"])
 def uploadCSV():
@@ -160,6 +143,8 @@ def uploadCSV():
 
         else:
             return jsonify({"error": "Unknown CSV format"}), 400
+        
+        
 
     except Exception as e:
         return jsonify({"error": f"Failed to read CSV file: {str(e)}"}), 500
