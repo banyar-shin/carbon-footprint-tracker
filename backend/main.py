@@ -65,9 +65,22 @@ def parseMonthCSV(file, userID):
                 "total_export_kwh": row["EXPORT (kWh)"],
                 "net_energy_kwh": round(row["Net Energy (kWh)"], 4),
                 "carbon_footprint": round(row["Carbon Footprint (Kg CO2)"], 6),
+            })
+        
+    # Insert into MongoDB
+    myCollection.update_one(
+        {"userID": userID},
+        {
+            "$set": {
+                "userID": userID,
+                "detailedEnergyUsageData": detailedEnergyUsageData,
+                "dailyEnergyData": dailyEnergyData,
             }
-            )
-        return jsonify({"Pass": "Parsed"}), 200
+        },
+        upsert=True,
+    )
+
+    return jsonify({"Pass": "Parsed"}), 200
 
 
 
