@@ -84,17 +84,30 @@ def dailyForm():
 
     # Calculate carbon footprint based on vehicle type
     if fuel_type == "EV":
+
         energyUsedDriving = ((miles_driven * wh_mile) / 1000)
-        
-        if energyInfo.get("hasSolar") == True:
+
+
+        if energyInfo is None:
+            carbon_footprint = (energyUsedDriving) * CO2_PER_KWH / carpool_count
+
+        elif energyInfo.get("hasSolar") == True:
             energyProducedInDay = getEnergyProduced(userID, date)
             if energyProducedInDay > energyUsedDriving: # Used less energy driving than generated
                 carbon_footprint = (-energyProducedInDay - energyUsedDriving) * CO2_PER_KWH / carpool_count 
             elif energyProducedInDay < energyUsedDriving: # Used more energy driving than generated
                 carbon_footprint = (energyUsedDriving - energyProducedInDay) * CO2_PER_KWH / carpool_count 
 
-        else: # No Solar installed
+        elif energyInfo.get("hasSolar") == False: # No Solar installed
             carbon_footprint = (energyUsedDriving) * CO2_PER_KWH / carpool_count
+            
+            energyProducedInDay = getEnergyProduced(userID, date)
+            if energyProducedInDay > energyUsedDriving: # Used less energy driving than generated
+                carbon_footprint = (-energyProducedInDay - energyUsedDriving) * CO2_PER_KWH / carpool_count 
+            elif energyProducedInDay < energyUsedDriving: # Used more energy driving than generated
+                carbon_footprint = (energyUsedDriving - energyProducedInDay) * CO2_PER_KWH / carpool_count 
+        else:
+            return jsonify({"error": "Cannot retrieve energy info"}), 400
 
     elif fuel_type == "Diesel":
         carbon_footprint = (miles_driven / mpg) * CO2_DIESEL / carpool_count
