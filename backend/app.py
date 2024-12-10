@@ -4,10 +4,13 @@ import pandas as pd
 from flask_cors import CORS
 from main import (
     parseMonthCSV,
+    parseMonthCSVSolar,
     parseAnnualCSV,
     getEnergyData,
     getEnergyProduced,
     getVehicleData,
+    setSolarFalse,
+    setSolarTrue,
 )
 from constants import *
 from geminiService import (
@@ -135,23 +138,6 @@ def transportSettings():
     return jsonify({"Pass": "Updated Transportation Information"}), 200
 
 
-@app.route("/energy", methods=["POST"])
-def energySettings():
-    data = request.get_json()
-    userID = data.get("userID")
-
-    # Extract data from the request
-    hasSolar = bool(data.get("hasSolar"))
-
-    # Prepare power data
-    energyData = {"hasSolar": hasSolar}
-
-    myCollection.update_one(
-        {"userID": userID}, {"$set": {"energyData": energyData}}, upsert=True
-    )
-
-    return jsonify({"Pass": "Updated Energy Information"}), 200
-
 
 @app.route("/upload", methods=["POST"])
 def uploadCSV():
@@ -174,11 +160,17 @@ def uploadCSV():
         # Check for specific columns to determine parsing method
         if "START DATE" in df.columns and "END DATE" in df.columns:
             return parseAnnualCSV(file, userID)
-        elif "START TIME" in df.columns and "END TIME" in df.columns:
+        elif "START TIME" in df.columns and "END TIME" in df.columns and "EXPORT (kWh)" in df.columns:
+            setSolarTrue(userID) 
+            return parseMonthCSVSolar(file, userID)
+        elif "START TIME" in df.columns and "END TIME" in df.columns and "USAGE (kWh)" in df.columns:
+            setSolarFalse(userID)
             return parseMonthCSV(file, userID)
 
         else:
             return jsonify({"error": "Unknown CSV format"}), 400
+        
+        
 
     except Exception as e:
         return jsonify({"error": f"Failed to read CSV file: {str(e)}"}), 500

@@ -7,7 +7,7 @@ from db import myCollection
 from constants import *
 
 
-def parseMonthCSV(file, userID):
+def parseMonthCSVSolar(file, userID):
     df = pd.read_csv(file, skiprows=5)
 
     # Drop the START TIME AND NOTES AND TYPE
@@ -25,6 +25,7 @@ def parseMonthCSV(file, userID):
     )
     df = df.drop(columns=["END TIME"])
 
+  
     # Calculate daily energy usage (including import and export)
     dailyEnergyUsage = (
         df.groupby("DATE")
@@ -42,7 +43,9 @@ def parseMonthCSV(file, userID):
     # Prepare detailed energy usage data
     detailedEnergyUsageData = []
     for index, row in df.iterrows():
-        if index % 30 == 0: # Every 30 minutes
+        # Parse the time string into a datetime object
+        time_obj = datetime.strptime(row["TIME"], "%H:%M")
+        if time_obj.minute == 30 or time_obj.minute == 00:  
             detailedEnergyUsageData.append(
                 {
                     "timestamp": f"{row['DATE']} {row['TIME']}",
@@ -71,8 +74,7 @@ def parseMonthCSV(file, userID):
     myCollection.update_one(
         {"userID": userID},
         {
-            "$set": {
-                "userID": userID,
+            "$push": {
                 "detailedEnergyUsageData": detailedEnergyUsageData,
                 "dailyEnergyData": dailyEnergyData,
             }
@@ -82,6 +84,75 @@ def parseMonthCSV(file, userID):
 
     return jsonify({"Pass": "Parsed"}), 200
 
+
+def parseMonthCSV(file, userID):
+    df = pd.read_csv(file, skiprows=5)
+
+    # Drop the START TIME AND NOTES AND TYPE
+    df = df.drop(columns=["TYPE", "START TIME", "NOTES"])
+
+
+    # Standardize the 'DATE' column
+    df["DATE"] = df["DATE"].apply(standardize_date)
+
+    # Add 1 minute to each END TIME and rename it to TIME
+    df["TIME"] = df["END TIME"].apply(
+        lambda x: (datetime.strptime(x, "%H:%M") + timedelta(minutes=1)).strftime(
+            "%H:%M"
+        )
+    )
+    df = df.drop(columns=["END TIME"])
+
+    # Calculate daily energy usage (including import and export)
+    dailyEnergyUsage = (
+        df.groupby("DATE")
+        .agg({"USAGE (kWh)": "sum"})
+        .reset_index()
+    )
+
+    dailyEnergyUsage["Carbon Footprint (Kg CO2)"] = (
+        dailyEnergyUsage["USAGE (kWh)"] * CO2_PER_KWH
+    )
+
+    # Prepare detailed energy usage data
+    detailedEnergyUsageData = []
+    for index, row in df.iterrows():
+        # Parse the time string into a datetime object
+        time_obj = datetime.strptime(row["TIME"], "%H:%M")
+        if time_obj.minute == 30 or time_obj.minute == 00:  
+            detailedEnergyUsageData.append(
+                {
+                    "timestamp": f"{row['DATE']} {row['TIME']}",
+                    "usage_kwh": row["USAGE (kWh)"],
+                    "carbon_footprint": round(
+                        (row["USAGE (kWh)"]) * CO2_PER_KWH, 6
+                    ),
+                }
+            )
+
+    # Prepare daily energy data
+    dailyEnergyData = []
+    for index, row in dailyEnergyUsage.iterrows():
+        dailyEnergyData.append(
+            {
+                "date": row["DATE"],
+                "total_usage_kwh": row["USAGE (kWh)"],
+                "carbon_footprint": round(row["Carbon Footprint (Kg CO2)"], 6),
+            })
+        
+    # Insert into MongoDB
+    myCollection.update_one(
+        {"userID": userID},
+        {
+            "$push": {
+                "detailedEnergyUsageData": detailedEnergyUsageData,
+                "dailyEnergyData": dailyEnergyData,
+            }
+        },
+        upsert=True,
+    )
+
+    return jsonify({"Pass": "Parsed"}), 200
 
 
 def standardize_date(dateString):
@@ -161,3 +232,20 @@ def getEnergyProduced(userID, date):
     except Exception as e:
         print(f"Error getting energy info: {str(e)}")
         return None
+
+def setSolarTrue(userID):
+    # Prepare power data
+    energyData = {"hasSolar": True}
+
+    myCollection.update_one(
+        {"userID": userID}, {"$set": {"energyData": energyData}}, upsert=True
+    )
+    
+
+def setSolarFalse(userID):
+    # Prepare power data
+    energyData = {"hasSolar": False}
+
+    myCollection.update_one(
+        {"userID": userID}, {"$set": {"energyData": energyData}}, upsert=True
+    )
