@@ -74,8 +74,7 @@ def parseMonthCSVSolar(file, userID):
     myCollection.update_one(
         {"userID": userID},
         {
-            "$set": {
-                "userID": userID,
+            "$push": {
                 "detailedEnergyUsageData": detailedEnergyUsageData,
                 "dailyEnergyData": dailyEnergyData,
             }
@@ -145,8 +144,7 @@ def parseMonthCSV(file, userID):
     myCollection.update_one(
         {"userID": userID},
         {
-            "$set": {
-                "userID": userID,
+            "$push": {
                 "detailedEnergyUsageData": detailedEnergyUsageData,
                 "dailyEnergyData": dailyEnergyData,
             }
