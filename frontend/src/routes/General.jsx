@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Bar } from 'react-chartjs-2'
 import {
   Chart as ChartJS,
@@ -29,32 +29,28 @@ export default function General() {
   const navigate = useNavigate();
 
 
-  useEffect(() => {
-    const checkVehicleData = async () => {
-      if (!userId) return;
+  const checkVehicleData = async () => {
+    if (!userId) return;
 
-      try {
-        const response = await fetch(`http://localhost:5001/checkVehicle?userID=${userId}`);
-        if (!response.ok) throw new Error("Error fetching vehicle data");
+    try {
+      const response = await fetch(`http://localhost:5001/checkVehicle?userID=${userId}`);
+      if (!response.ok) throw new Error("Error fetching vehicle data");
 
-        const data = await response.json();
-        if (data && data.length) {
-          // Vehicle data exists
-          setVehicleDataExists(true);
-        } else {
-          // Redirect user to transportation settings if data doesn't exist
-          alert("You need to configure your transportation settings first.");
-          navigate("/dashboard");
-        }
-      } 
-      catch (error) {
-        console.error("Error checking vehicle data:", error);
-        alert("An error occurred while verifying your vehicle data.");
+      const data = await response.json();
+      if (data) {
+        // Vehicle data exists
+        setVehicleDataExists(true);
+        document.getElementById('add_data_modal').showModal();
+      } else {
+        // Redirect user to transportation settings if data doesn't exist
+        alert("You need to configure your transportation settings first.");
+        navigate("/dashboard/transport");
       }
-    };
-
-    checkVehicleData();
-  }, [userId, navigate]);
+    } catch (error) {
+      console.error("Error checking vehicle data:", error);
+      alert("An error occurred while verifying your vehicle data.");
+    }
+  };
   
   const handleDailyForm = async (event) => {
     event.preventDefault();
@@ -188,10 +184,10 @@ export default function General() {
   return (
     <div className="h-full overflow-y-auto p-4 items-center text-center text-base-content space-y-4">
       <div className="p-6 bg-base-200 rounded-lg grid grid-cols-2 gap-6 justify-center">
-        <button className="btn btn-secondary w-full" onClick={() => document.getElementById('upload_csv_modal').showModal()}>
+        <button className="btn btn-secondary w-full" onClick={() => document.getElementById('upload_csv_modal').showModal()} >
           Upload PG&E File
         </button>
-        <button className="btn btn-secondary w-full" onClick={() => document.getElementById('add_data_modal').showModal()}>
+        <button className="btn btn-secondary w-full" onClick={checkVehicleData} >
           Add Today's Data
         </button>
       </div>

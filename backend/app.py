@@ -34,15 +34,13 @@ def checkVehicleData():
         vehicleSettings = myCollection.find_one({"userID": userID})
 
         if vehicleSettings:
-            return vehicleSettings.get("vehicleData")
+            return jsonify({"success": True, "vehicleData": vehicleSettings.get("vehicleData")}), 200
         else:
-            return None  # Return None if no record is found
+            return jsonify({"success": False}), 200
     except Exception as e:
         print(f"Error getting vehicle info: {str(e)}")
         return None
 
-# TODO do the EV solar thing
-# TODO the wh_mile None thing
 @app.route("/dailyform", methods=["POST"])
 def dailyForm():
     # default carpool
