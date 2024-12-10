@@ -26,12 +26,12 @@ export default function RootLayout() {
       routerReplace={(to) => navigate(to, { replace: true })}
       publishableKey={PUBLISHABLE_KEY}
     >
-      <header className="header">
+      <header className="header h-20">
         {showNavBar && (
           <NavBar toggleMenu={toggleMenu} />
         )}
       </header>
-      <main className='max-h-[92vh]'>
+      <main className='h-[calc(100%-5rem)]'>
         <Outlet context={{ showMenu }} />
       </main>
       {showFooter && (

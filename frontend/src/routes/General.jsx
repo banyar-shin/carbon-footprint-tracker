@@ -1,30 +1,10 @@
 import { useState } from 'react'
-import { Bar } from 'react-chartjs-2'
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend,
-} from 'chart.js'
 import { useAuth } from '@clerk/clerk-react'
-
-// Register ChartJS components
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend
-)
+import Chart from './../components/Chart'
 
 export default function General() {
-  const [timeframe, setTimeframe] = useState('weekly')
-
-  const { userId, _ } = useAuth()
+  const { userId } = useAuth()
+  const [chart, setChart] = useState('general-week')
 
   const handleDailyForm = async (event) => {
     event.preventDefault();
@@ -80,34 +60,8 @@ export default function General() {
     }
   };
 
-  const chartData = {
-    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-    datasets: [
-      {
-        label: 'Carbon Footprint (kg CO2)',
-        data: [12, 19, 3, 5, 2, 3, 7],
-        backgroundColor: 'rgba(75, 192, 192, 0.5)',
-        borderColor: 'rgba(75, 192, 192, 1)',
-        borderWidth: 2,
-      },
-    ],
-  }
-
-  const chartOptions = {
-    responsive: true,
-    plugins: {
-      legend: {
-        position: 'top',
-      },
-      title: {
-        display: true,
-        text: 'Carbon Footprint Data',
-      },
-    },
-  }
-
   return (
-    <div className="h-full overflow-y-auto p-4 items-center text-center text-base-content space-y-4">
+    <div className="h-full overflow-y-auto p-4 items-center text-center text-base-content space-y-4" >
       <div className="p-6 bg-base-200 rounded-lg grid grid-cols-2 gap-6 justify-center">
         <button className="btn btn-secondary w-full" onClick={() => document.getElementById('upload_csv_modal').showModal()}>
           Upload PG&E File
@@ -118,25 +72,25 @@ export default function General() {
       </div>
 
       <div className="w-full p-6 rounded-lg bg-base-200 space-y-6">
-        <Bar data={chartData} options={chartOptions} />
+        <Chart chart={chart} setChart={setChart} />
         <div className="grid grid-cols-3 justify-center w-full gap-4">
           <button
-            className={`btn btn-secondary ${timeframe === 'weekly' ? 'text-white border border-white btn-active' : ''}`}
-            onClick={() => setTimeframe('weekly')}
+            className={`btn btn-secondary ${chart === 'general-week' ? 'text-white border border-white btn-active' : ''}`}
+            onClick={() => setChart('general-week')}
           >
             Weekly
           </button>
           <button
-            className={`btn btn-secondary ${timeframe === 'monthly' ? 'text-white border border-white btn-active' : ''}`}
-            onClick={() => setTimeframe('monthly')}
+            className={`btn btn-secondary ${chart === 'general-month' ? 'text-white border border-white btn-active' : ''}`}
+            onClick={() => setChart('general-month')}
           >
             Monthly
           </button>
           <button
-            className={`btn btn-secondary ${timeframe === 'annually' ? 'text-white border border-white btn-active' : ''}`}
-            onClick={() => setTimeframe('annually')}
+            className={`btn btn-secondary ${chart === 'general-year' ? 'text-white border border-white btn-active' : ''}`}
+            onClick={() => setChart('general-year')}
           >
-            Annually
+            Yearly
           </button>
         </div>
       </div>
@@ -194,7 +148,7 @@ export default function General() {
             </div>
           </form>
         </div>
-      </dialog >
+      </dialog>
     </div >
   );
 }
