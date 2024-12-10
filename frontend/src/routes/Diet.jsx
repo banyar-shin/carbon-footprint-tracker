@@ -70,7 +70,7 @@ export default function MultiStepForm() {
           </div>
         </div>
       )}
-      <div className="w-full bg-gradient-to-r from-primary via-accent to-secondary text-white text-center py-6 rounded-t-lg">
+      <div className="w-full bg-gradient-to-r from-primary via-secondary to-primary text-white text-center py-6 rounded-t-lg">
         <h1 className="text-4xl font-bold border-b-2 border-white pb-2 w-1/2 mx-auto">
           Diet Analysis 🍽️
         </h1>

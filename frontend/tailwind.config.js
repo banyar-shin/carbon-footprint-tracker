@@ -25,6 +25,6 @@ export default {
     daisyui,
   ],
   daisyui: {
-    themes: ["retro"],
+    themes: ["winter"],
   },
 };

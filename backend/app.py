@@ -220,6 +220,26 @@ def calculate_footprint():
         }
     )
 
+@app.route("/data", methods=["GET"])
+def get_data():
+    userID = request.args.get("userID")
+    chart_type = request.args.get("chartType")
+
+    if not userID:
+        return jsonify({"error": "userID is required"}), 400
+    
+    try:
+        user_data = myCollection.find_one({"userID": userID}, {"_id": 0})
+        if not user_data:
+            return jsonify({"error": "User not found"}), 404
+        if chart_type == "energy-day":
+            return jsonify(user_data.get("detailedEnergyUsageData")), 200
+        elif chart_type in ["energy-week", "energy-month", "energy-year"]:
+            return jsonify(user_data.get("dailyEnergyData")), 200
+        else:
+            return jsonify({"error": "Invalid chart type"}), 400
+    except Exception as e:
+        return jsonify({"error": f"Failed to get data: {str(e)}"}), 500
 
 
 
