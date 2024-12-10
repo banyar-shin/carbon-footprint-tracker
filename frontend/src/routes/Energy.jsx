@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Bar } from 'react-chartjs-2'
+import { Bar } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -8,8 +8,8 @@ import {
   Title,
   Tooltip,
   Legend,
-} from 'chart.js'
-import { useAuth } from '@clerk/clerk-react'
+} from 'chart.js';
+import { useAuth } from '@clerk/clerk-react';
 
 // Register ChartJS components
 ChartJS.register(
@@ -19,57 +19,43 @@ ChartJS.register(
   Title,
   Tooltip,
   Legend
-)
+);
 
 export default function Energy() {
-  const [timeframe, setTimeframe] = useState('weekly')
+  const [timeframe, setTimeframe] = useState('weekly');
+  const [hasSolar, setHasSolar] = useState(null);
+  const { userId } = useAuth();
 
-  const handleUpload = async (event) => {
-    event.preventDefault();
-
-    const fileInput = event.target.querySelector('input[type="file"]');
-    const file = fileInput.files[0];
-
-    if (!file) {
-      alert('Please select a file to upload');
-      return;
-    }
-
-    if (!file.name.endsWith('.csv')) {
-      alert('Please upload a CSV file');
-      return;
-    }
-
+  const handleSolarSubmit = async (value) => {
     try {
       if (!userId) {
-        throw new Error('Upload failed: Invalid UserID')
+        throw new Error('Submission failed: Invalid UserID');
       }
 
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('userID', userId)
+      console.log("Form Data:", userId); // Debugging
 
-      const response = await fetch("http://localhost:5001/upload", {
+      const response = await fetch("http://127.0.0.1:5001/energy", {
         method: 'POST',
-        body: formData,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userID: userId,
+          hasSolar: value,
+        }),
       });
 
       if (!response.ok) {
-        throw new Error(`Upload failed: ${response.statusText}`);
+        throw new Error(`Submission failed: ${response.statusText}`);
       }
 
       const data = await response.json();
-      console.log('Upload successful:', data);
+      console.log('Submission successful:', data);
 
-      fileInput.value = '';
-
-      document.getElementById('upload_csv_modal').close();
-
-      alert('File uploaded successfully!');
-
+      alert('Solar information updated successfully!');
     } catch (error) {
-      console.error('Error uploading file:', error);
-      alert('Failed to upload file. Please try again.');
+      console.error('Error updating solar information:', error);
+      alert('Failed to update solar information. Please try again.');
     }
   };
 
@@ -84,7 +70,7 @@ export default function Energy() {
         borderWidth: 2,
       },
     ],
-  }
+  };
 
   const chartOptions = {
     responsive: true,
@@ -97,16 +83,10 @@ export default function Energy() {
         text: 'Carbon Footprint Data',
       },
     },
-  }
+  };
 
   return (
     <div className="h-full overflow-y-auto p-4 items-center text-center text-base-content space-y-4">
-
-      <div className="p-6 bg-base-200 rounded-lg gap-6 justify-center">
-        <button className="btn btn-secondary w-full" onClick={() => document.getElementById('upload_csv_modal').showModal()}>
-          Upload PG&E File
-        </button>
-      </div>
       <div className="w-full p-6 rounded-lg bg-base-200 space-y-6">
         <Bar data={chartData} options={chartOptions} />
         <div className="grid grid-cols-3 justify-center w-full gap-4">
@@ -131,29 +111,23 @@ export default function Energy() {
         </div>
       </div>
 
-      <dialog id="upload_csv_modal" className="modal">
-        <div className="modal-box w-[32rem] max-w-xl">
-          <form method="dialog">
-            <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
-          </form>
-          <h3 className="font-bold w-full text-xl py-6">Upload PG&E File</h3>
-          <form onSubmit={handleUpload} className='w-full flex flex-col px-6 py-12 rounded-xl bg-base-200 justify-center items-center'>
-            <label className="form-control flex w-full max-w-xs">
-              <div className="label">
-                <span className="label-text font-semibold">Pick a file</span>
-              </div>
-              <input type="file" accept=".csv" className="file-input file-input-bordered max-w-xs" />
-            </label>
-            <div className='divider' />
-            <div className='w-full px-24'>
-              <button type="submit" className="btn btn-primary w-full">
-                Upload File
-              </button>
-            </div>
-          </form>
+      <div className="p-6 bg-base-200 rounded-lg gap-6 justify-center">
+        <h3 className="font-bold w-full text-xl py-4">Do you have solar power?</h3>
+        <div className="flex justify-center gap-4">
+          <button
+            className="btn btn-primary"
+            onClick={() => handleSolarSubmit(true)}
+          >
+            Yes
+          </button>
+          <button
+            className="btn btn-secondary"
+            onClick={() => handleSolarSubmit(false)}
+          >
+            No
+          </button>
         </div>
-      </dialog>
-
+      </div>
     </div>
   );
 }

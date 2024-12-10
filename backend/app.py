@@ -32,9 +32,8 @@ def home():
 def dailyForm():
     # default carpool
     carpool_count = 1
-
     data = request.get_json()
-    userID = request.form.get("userID")
+    userID = data.get("userID")
     vehicleInfo = getVehicleData(userID)
     energyInfo = getEnergyData(userID)
 
@@ -43,31 +42,30 @@ def dailyForm():
     miles_driven = int(data.get("miles_driven"))
     carpool_count = int(data.get("carpool_count"))
 
-    wh_mile = vehicleInfo.get("wh_mile")
-    mpg = vehicleInfo.get("mpg")
+    if not (vehicleInfo.get("wh_mile")):
+        mpg = vehicleInfo.get("mpg")
+    else:
+       wh_mile = vehicleInfo.get("wh_mile")
     fuel_type = vehicleInfo.get("fuel_type")
 
     # If user did not enter in Miles Driven use average miles driven to calculate
-    # TODO fix
-    # if miles_driven is None:
-    # miles_driven = getVehicleData("avg_miles")
-
-    # electricity_usage_kwh = float(data.get("electricity_usage_kwh"))
+    if miles_driven is None:
+        miles_driven = (getVehicleData("avg_miles")/365)
 
     # Calculate carbon footprint based on vehicle type
     if fuel_type == "EV":
-        energyInDay = getEnergyProduced(userID, date)
-        # TODO test the carbon_footprint for having solar becuz we have to account for if they charged at home
-        if energyInfo.get("hasSolar") == True and energyInDay < 0:
-            carbon_footprint = (
-                (getEnergyProduced(userID, date) - ((miles_driven * wh_mile) / 1000))
-                * CO2_PER_KWH
-                / carpool_count
-            )  # if solar produced more household consumed
-        else:
-            carbon_footprint = (
-                ((miles_driven * wh_mile) / 1000) * CO2_PER_KWH / carpool_count
-            )
+        energyUsedDriving = ((miles_driven * wh_mile) / 1000)
+        
+        if energyInfo.get("hasSolar") == True:
+            energyProducedInDay = getEnergyProduced(userID, date)
+            if energyProducedInDay > energyUsedDriving: # Used less energy driving than generated
+                carbon_footprint = (-energyProducedInDay - energyUsedDriving) * CO2_PER_KWH / carpool_count 
+            elif energyProducedInDay < energyUsedDriving: # Used more energy driving than generated
+                carbon_footprint = (energyUsedDriving - energyProducedInDay) * CO2_PER_KWH / carpool_count 
+
+        else: # No Solar installed
+            carbon_footprint = (energyUsedDriving) * CO2_PER_KWH / carpool_count
+
     elif fuel_type == "Diesel":
         carbon_footprint = (miles_driven / mpg) * CO2_DIESEL / carpool_count
     elif fuel_type == "Gasoline":
@@ -84,15 +82,18 @@ def dailyForm():
         {"$push": {"transportationData": carbon_footprint}},
         upsert=True,
     )
-
-    return
+    return jsonify({"Pass": "Updated Daily Form Information"}), 200
 
 
 # Working 12-6-2024
 @app.route("/transportation", methods=["POST"])
 def transportSettings():
     data = request.get_json()
-    userID = request.form.get("userID")
+    userID = data.get("userID")
+    print(userID)
+
+    if not userID:
+        return jsonify({"Error": "userID is required"}), 400
 
     # Extract data from the request
     fuel_type = data.get("fuel_type")
@@ -118,14 +119,13 @@ def transportSettings():
 @app.route("/energy", methods=["POST"])
 def energySettings():
     data = request.get_json()
-    userID = request.form.get("userID")
+    userID = data.get("userID")
 
     # Extract data from the request
-    avg_month_kw = int(data.get("avg_month_kw"))
     hasSolar = bool(data.get("hasSolar"))
 
     # Prepare power data
-    energyData = {"avg_month_kw": avg_month_kw, "hasSolar": hasSolar}
+    energyData = {"hasSolar": hasSolar}
 
     myCollection.update_one(
         {"userID": userID}, {"$set": {"energyData": energyData}}, upsert=True
@@ -167,9 +167,9 @@ def uploadCSV():
 
 @app.route("/calculate_diet", methods=["POST"])
 def calculate_footprint():
-
+    userID = request.form.get("userID")
+    # Ask user for MONTHLY INPUT of food intake
     data = request.get_json()
-
     total_carbon = 0
 
     for food, frequency in data["diet"].items():
@@ -192,6 +192,24 @@ def calculate_footprint():
     nutrition_analysis = gemini_analyze_nutrition(data)
     food_recommendations = gemini_suggest_sustainable_alternatives(data)
 
+    footprint_data = {
+        "userID": userID,
+        "carbonFootprint": {
+            "weekly": weekly_carbon_diet,
+            "monthly": monthly_carbon_diet,
+            "annually": annually_carbon_diet,
+        },
+        "nutritionAnalysis": nutrition_analysis,
+        "foodRecommendations": food_recommendations,
+    }
+
+    # Insert or update the MongoDB document
+    myCollection.update_one(
+        {"userID": userID},  
+        {"$set": footprint_data},  
+        upsert=True  
+    )
+
     return jsonify(
         {
             "carbonFootprintWeekly": weekly_carbon_diet,
@@ -201,6 +219,8 @@ def calculate_footprint():
             "foodRecommendations": food_recommendations,
         }
     )
+
+
 
 
 if __name__ == "__main__":
