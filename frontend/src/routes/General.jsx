@@ -169,7 +169,7 @@ export default function General() {
           Upload PG&E File
         </button>
         <button className="btn btn-secondary w-full" onClick={checkVehicleData} >
-          Add Today's Data
+          Add Today's Transportation Data
         </button>
       </div>
 
