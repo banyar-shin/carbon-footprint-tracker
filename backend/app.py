@@ -34,8 +34,14 @@ def dailyForm():
     carpool_count = 1
     data = request.get_json()
     userID = data.get("userID")
+
+    if not userID:
+        return jsonify({"Error": "userID is required"}), 400
+    
     vehicleInfo = getVehicleData(userID)
+
     energyInfo = getEnergyData(userID)
+
 
     # Get from form
     date = data.get("date")

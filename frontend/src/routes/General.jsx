@@ -23,13 +23,62 @@ ChartJS.register(
 
 export default function General() {
   const [timeframe, setTimeframe] = useState('weekly')
-
   const { userId, _ } = useAuth()
 
+  
   const handleDailyForm = async (event) => {
     event.preventDefault();
-    // TODO: implement handleDailyForm function (follow handleUpload)
+
+    const formData = new FormData(event.target)
+    const milesDriven = formData.get('miles_driven')
+    const carpool = formData.get('carpool') === 'yes' ? 1 : 0
+
+    try {
+      if (!userId) {
+        throw new Error('Submission failed: Invalid UserID')
+      }
+
+      const data = {
+        date: new Date().toLocaleDateString('en-US'),
+        miles_driven: parseInt(milesDriven, 10),
+        carpool_count: carpool,
+        userID: userId,
+      }
+
+      const response = await fetch('http://localhost:5001/dailyform', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      })
+
+      if (!response.ok) {
+        throw new Error(`Submission failed: ${response.statusText}`)
+      }
+
+      alert('Data submitted successfully!')
+      document.getElementById('add_data_modal').close()
+    } catch (error) {
+      console.error('Error submitting data:', error)
+      alert('Failed to submit data. Please try again.')
+
+    }
   }
+
+
+    // TODO: implement handleDailyForm function (follow handleUpload)
+
+
+
+
+
+
+
+
+
+
+
 
   const handleUpload = async (event) => {
     event.preventDefault();
@@ -178,23 +227,37 @@ export default function General() {
         </div>
       </dialog>
 
-      <dialog id="add_data_modal" className="modal">
+    <dialog id="add_data_modal" className="modal">
         <div className="modal-box w-[48rem] max-w-5xl">
           <form method="dialog">
             <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
           </form>
           <h3 className="font-bold w-full text-xl py-6">Add Today's Data</h3>
-          <form onSubmit={handleDailyForm} className='w-full flex flex-col px-6 py-12 rounded-xl bg-base-200 justify-center items-center'>
-            {/* TODO: Daily Form: Use components from here: https://daisyui.com/components/select/ */}
-            <div className='divider' />
-            <div className='w-full px-24'>
+          <form onSubmit={handleDailyForm} className="w-full flex flex-col px-6 py-12 rounded-xl bg-base-200 justify-center items-center">
+            <label className="form-control w-full max-w-xs">
+              <div className="label">
+                <span className="label-text font-semibold">Miles Driven</span>
+              </div>
+              <input type="number" name="miles_driven" className="input input-bordered max-w-xs" required />
+            </label>
+            <label className="form-control w-full max-w-xs">
+              <div className="label">
+                <span className="label-text font-semibold">Carpool?</span>
+              </div>
+              <select name="carpool" className="select select-bordered max-w-xs" required>
+                <option value="no">No</option>
+                <option value="yes">Yes</option>
+              </select>
+            </label>
+            <div className="divider" />
+            <div className="w-full px-24">
               <button type="submit" className="btn btn-primary w-full">
                 Submit
               </button>
             </div>
           </form>
         </div>
-      </dialog >
-    </div >
+      </dialog>
+    </div>
   );
 }
