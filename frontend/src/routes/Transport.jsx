@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { Bar } from "react-chartjs-2";
-import "chart.js/auto";
 import { useAuth } from '@clerk/clerk-react';
+import Chart from './../components/Chart'
 
 export default function Transportation() {
     const { userId } = useAuth();
-    const [timeframe, setTimeframe] = useState("daily");
+    const [chart, setChart] = useState('transport-week')
     const [formData, setFormData] = useState({
         userID: "", // Initialize userID as empty string
         fuel_type: "",
@@ -22,34 +21,6 @@ export default function Transportation() {
             }));
         }
     }, [userId]);
-
-    const chartData = {
-      labels: ["Daily", "Weekly", "Monthly", "Annual"],
-      datasets: [
-          {
-              label: "Miles Driven",
-              data: [20, 100, 400, 5000], // Sample data
-              backgroundColor: "rgba(75, 192, 192, 0.5)",
-              borderColor: "rgba(75, 192, 192, 1)",
-              borderWidth: 2,
-          },
-      ],
-  };
-
-
-
-    const chartOptions = {
-        responsive: true,
-        plugins: {
-            legend: {
-                position: "top",
-            },
-            title: {
-                display: true,
-                text: "Miles Driven Statistics",
-            },
-        },
-    };
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -86,25 +57,25 @@ export default function Transportation() {
     return (
         <div className="h-full overflow-y-auto p-4 items-center text-center text-base-content space-y-4">
             <div className="w-full p-6 rounded-lg bg-base-200 space-y-6">
-                <Bar data={chartData} options={chartOptions} />
+                <Chart chart={chart} setChart={setChart} />
                 <div className="grid grid-cols-3 justify-center w-full gap-4">
                     <button
-                        className={`btn btn-secondary ${timeframe === 'daily' ? 'btn-active' : ''}`}
-                        onClick={() => setTimeframe('daily')}
-                    >
-                        Daily
-                    </button>
-                    <button
-                        className={`btn btn-secondary ${timeframe === 'weekly' ? 'btn-active' : ''}`}
-                        onClick={() => setTimeframe('weekly')}
+                        className={`btn btn-secondary ${chart === 'transport-week' ? 'text-white border border-white btn-active' : ''}`}
+                        onClick={() => setChart('transport-week')}
                     >
                         Weekly
                     </button>
                     <button
-                        className={`btn btn-secondary ${timeframe === 'monthly' ? 'btn-active' : ''}`}
-                        onClick={() => setTimeframe('monthly')}
+                        className={`btn btn-secondary ${chart === 'transport-month' ? 'text-white border border-white btn-active' : ''}`}
+                        onClick={() => setChart('transport-month')}
                     >
                         Monthly
+                    </button>
+                    <button
+                        className={`btn btn-secondary ${chart === 'transport-year' ? 'text-white border border-white btn-active' : ''}`}
+                        onClick={() => setChart('transport-year')}
+                    >
+                        Yearly
                     </button>
                 </div>
             </div>

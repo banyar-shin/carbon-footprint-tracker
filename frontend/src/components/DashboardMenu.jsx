@@ -9,7 +9,7 @@ export default function DashboardMenu() {
   const isActive = (route) => location.pathname === route;
 
   return (
-    <div className="flex flex-col bg-base-200 p-4 transition-all min-w-48">
+    <div className="flex flex-col bg-base-200 h-full p-4 transition-all min-w-48">
       <ul className="menu space-y-6">
         <li>
           <button
@@ -51,7 +51,7 @@ export default function DashboardMenu() {
       <ul className="menu w-full mt-auto space-y-6">
         <li>
           <button
-            className={`btn btn-primary w-full rounded-lg transition-all duration-300 ${isActive('/dashboard/tutorial') ? 'text-white btn-active border border-white' : ''}`}
+            className={`btn btn-primary w-full rounded-lg transition-all duration-300 ${isActive('/dashboard/faq') ? 'text-white btn-active border border-white' : ''}`}
             onClick={() => navigate('/dashboard/faq')}
           >
             <RiQuestionAnswerFill className="text-xl" />

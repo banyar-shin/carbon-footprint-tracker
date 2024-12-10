@@ -1,14 +1,21 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 export default function FAQ() {
   const [activeIndex, setActiveIndex] = useState(null);
+  const navigate = useNavigate();
 
   const faqItems = [
     {
       question: "What if I don't know how to access PG&E Data?",
       answer: (
         <>
-          Click the <a href="http://127.0.0.1:5174/dashboard/tutorial" className="text-primary underline">blue hyperlink</a> how to access PG&E data. We have a step-by-step guide showing you how to.
+          Click <span
+            onClick={() => navigate('/dashboard/tutorial')}
+            className="text-info underline cursor-pointer"
+          >
+            here
+          </span> or the tutorial button on the bottom left. We have a step-by-step guide showing you how to access the data.
         </>
       ),
     },
@@ -35,7 +42,7 @@ export default function FAQ() {
     },
   ];
 
-  const toggleFAQ = (index) => { 
+  const toggleFAQ = (index) => {
     setActiveIndex(index === activeIndex ? null : index);
   };
 
