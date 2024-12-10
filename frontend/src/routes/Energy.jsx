@@ -32,14 +32,9 @@ export default function Energy() {
         throw new Error('Submission failed: Invalid UserID');
       }
 
-
-
-
       console.log("Form Data:", userId); // Debugging
 
-
-
-      const response = await fetch("http://127.0.0.1:5000/energy", {
+      const response = await fetch("http://127.0.0.1:5001/energy", {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
