@@ -25,6 +25,21 @@ CORS(app, resources={r"/*": {"origins": "*"}})
 def home():
     return "It works!"
 
+@app.route("/checkVehicle", methods=["GET"])
+def checkVehicleData():
+    try:
+        # Extract userID from the query string
+        userID = request.args.get("userID")
+        # Query the MongoDB collection for vehicle information
+        vehicleSettings = myCollection.find_one({"userID": userID})
+
+        if vehicleSettings:
+            return vehicleSettings.get("vehicleData")
+        else:
+            return None  # Return None if no record is found
+    except Exception as e:
+        print(f"Error getting vehicle info: {str(e)}")
+        return None
 
 # TODO do the EV solar thing
 # TODO the wh_mile None thing

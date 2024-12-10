@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Bar } from 'react-chartjs-2'
 import {
   Chart as ChartJS,
@@ -10,6 +10,7 @@ import {
   Legend,
 } from 'chart.js'
 import { useAuth } from '@clerk/clerk-react'
+import { useNavigate } from 'react-router-dom'
 
 // Register ChartJS components
 ChartJS.register(
@@ -22,9 +23,38 @@ ChartJS.register(
 )
 
 export default function General() {
-  const [timeframe, setTimeframe] = useState('weekly')
-  const { userId, _ } = useAuth()
+  const { userId } = useAuth();
+  const [timeframe, setTimeframe] = useState("daily");
+  const [vehicleDataExists, setVehicleDataExists] = useState(false);
+  const navigate = useNavigate();
 
+
+  useEffect(() => {
+    const checkVehicleData = async () => {
+      if (!userId) return;
+
+      try {
+        const response = await fetch(`http://localhost:5001/checkVehicle?userID=${userId}`);
+        if (!response.ok) throw new Error("Error fetching vehicle data");
+
+        const data = await response.json();
+        if (data && data.length) {
+          // Vehicle data exists
+          setVehicleDataExists(true);
+        } else {
+          // Redirect user to transportation settings if data doesn't exist
+          alert("You need to configure your transportation settings first.");
+          navigate("/dashboard");
+        }
+      } 
+      catch (error) {
+        console.error("Error checking vehicle data:", error);
+        alert("An error occurred while verifying your vehicle data.");
+      }
+    };
+
+    checkVehicleData();
+  }, [userId, navigate]);
   
   const handleDailyForm = async (event) => {
     event.preventDefault();
