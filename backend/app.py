@@ -58,8 +58,18 @@ def dailyForm():
 
     # Get from form
     date = data.get("date")
-    miles_driven = int(data.get("miles_driven"))
+
+    # If user did not enter in Miles Driven use average miles driven to calculate
+    if(data.get("miles_driven") is None):
+        miles_driven = (vehicleInfo.get("avg_miles")/365)
+    else:
+        miles_driven = int(data.get("miles_driven"))
     carpool_count = int(data.get("carpool_count"))
+
+
+
+    if carpool_count == 0:
+        carpool_count = 1
 
     if not (vehicleInfo.get("wh_mile")):
         mpg = vehicleInfo.get("mpg")
@@ -67,9 +77,7 @@ def dailyForm():
        wh_mile = vehicleInfo.get("wh_mile")
     fuel_type = vehicleInfo.get("fuel_type")
 
-    # If user did not enter in Miles Driven use average miles driven to calculate
-    if miles_driven is None:
-        miles_driven = (getVehicleData("avg_miles")/365)
+  
 
     # Calculate carbon footprint based on vehicle type
     if fuel_type == "EV":
@@ -98,7 +106,7 @@ def dailyForm():
     # Insert into MongoDB
     myCollection.update_one(
         {"userID": userID},
-        {"$push": {"transportationData": carbon_footprint}},
+        {"$set": {"transportationData": carbon_footprint}},
         upsert=True,
     )
     return jsonify({"Pass": "Updated Daily Form Information"}), 200

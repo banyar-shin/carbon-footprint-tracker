@@ -1,38 +1,24 @@
 import { useState } from 'react'
 import { useAuth } from '@clerk/clerk-react'
-
-import { useNavigate } from 'react-router-dom'
 import Chart from './../components/Chart'
-// Register ChartJS components
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend
-)
+import { useNavigate } from 'react-router-dom'
 
 export default function General() {
   const { userId } = useAuth();
   const [timeframe, setTimeframe] = useState("daily");
-  const [vehicleDataExists, setVehicleDataExists] = useState(false);
+  const [ vehicleDataExists, setVehicleDataExists] = useState(false);
   const navigate = useNavigate();
   const [chart, setChart] = useState('general-week')
   
   
   const checkVehicleData = async () => {
     if (!userId) return;
-
-
-
-
     try {
       const response = await fetch(`http://localhost:5001/checkVehicle?userID=${userId}`);
       if (!response.ok) throw new Error("Error fetching vehicle data");
 
       const data = await response.json();
-      if (data) {
+      if (data.success == true) {
         setVehicleDataExists(true);
         document.getElementById('add_data_modal').showModal();
       } else {
@@ -215,7 +201,7 @@ export default function General() {
               <div className="label">
                 <span className="label-text font-semibold">Miles Driven</span>
               </div>
-              <input type="number" name="miles_driven" className="input input-bordered max-w-xs" required />
+              <input type="number" name="miles_driven" className="input input-bordered max-w-xs"  />
             </label>
             <label className="form-control w-full max-w-xs">
               <div className="label">
