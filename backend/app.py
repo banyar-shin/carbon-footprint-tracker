@@ -195,8 +195,8 @@ def uploadCSV():
 
 
 @app.route("/calculate_diet", methods=["POST"])
-def calculate_footprint():
-    userID = request.form.get("userID")
+def calculate_footprint(): 
+    userID = request.args.get("userID")
     # Ask user for MONTHLY INPUT of food intake
     data = request.get_json()
     total_carbon = 0
@@ -223,17 +223,19 @@ def calculate_footprint():
 
     footprint_data = {
         "userID": userID,
-        "carbonFootprint": {
+        "DietryData": {
             "weekly": weekly_carbon_diet,
             "monthly": monthly_carbon_diet,
             "annually": annually_carbon_diet,
-        },
-        "nutritionAnalysis": nutrition_analysis,
-        "foodRecommendations": food_recommendations,
+        }
     }
+
+    print("users ID at bottom", userID)
 
     # Insert or update the MongoDB document
     myCollection.update_one({"userID": userID}, {"$set": footprint_data}, upsert=True)
+
+
 
     return jsonify(
         {

@@ -1,7 +1,10 @@
 import { useState } from "react";
 import { FiArrowRight } from "react-icons/fi";
+import { useAuth } from '@clerk/clerk-react';
+
 
 export default function MultiStepForm() {
+  const { userId } = useAuth();
   const [currentStep, setCurrentStep] = useState(1); // Tracks the current step
   const [formData, setFormData] = useState({
     diet: {},
@@ -35,17 +38,19 @@ export default function MultiStepForm() {
   const handleCalculate = async () => {
     const payload = {
       ...formData,
+      userID: userId, // Add userID to the payload
     };
     setIsLoading(true);
+  
     try {
-      const response = await fetch("http://localhost:5001/calculate_diet", {
+      const response = await fetch(`http://localhost:5001/calculate_diet?userID=${userId}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(payload),
       });
-
+  
       if (response.ok) {
         const result = await response.json();
         setCarbonFootprintData(result);
