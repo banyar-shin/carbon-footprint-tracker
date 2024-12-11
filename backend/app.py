@@ -83,7 +83,7 @@ def dailyForm():
 
     # Calculate carbon footprint based on vehicle type
     if fuel_type == "EV":
-        energyUsedDriving = ((miles_driven * wh_mile) / 1000)
+        energyUsedDriving = (miles_driven * wh_mile) / 1000
         carbon_footprint = (energyUsedDriving) * CO2_PER_KWH / carpool_count
 
     elif fuel_type == "Diesel":
@@ -93,18 +93,23 @@ def dailyForm():
     else:
         return jsonify({"error": "Unknown vehicle type"}), 400
 
-
     # Prepare carbon footprint data
-    carbon_footprint_data = {"date": date, "carbon_footprint": carbon_footprint}
+    carbon_footprint_data = {
+        "date": date,
+        "carbon_footprint": carbon_footprint,
+        "miles_driven": miles_driven,
+    }
 
     # Check if the record for the given date already exists
-    user_data = myCollection.find_one({"userID": userID, "transportationData.date": date})
+    user_data = myCollection.find_one(
+        {"userID": userID, "transportationData.date": date}
+    )
 
     if user_data:
         # Update the existing record
         myCollection.update_one(
             {"userID": userID, "transportationData.date": date},
-            {"$set": {"transportationData.$.carbon_footprint": carbon_footprint}}
+            {"$set": {"transportationData.$.carbon_footprint": carbon_footprint}},
         )
     else:
         # Insert a new record
@@ -245,7 +250,9 @@ def calculate_footprint():
         }
     )
 
+
 from datetime import datetime
+
 
 @app.route("/data", methods=["GET"])
 def get_data():
@@ -275,10 +282,12 @@ def get_data():
 
         # Handle energy-day first
         if chart_type == "energy-day":
-                # Convert selectedDate to YYYY-MM-DD format
+            # Convert selectedDate to YYYY-MM-DD format
             if selected_date:
                 try:
-                    cleaned_date = selected_date.split(" (")[0]  # Remove everything after " ("
+                    cleaned_date = selected_date.split(" (")[
+                        0
+                    ]  # Remove everything after " ("
                     print(cleaned_date)
                     # Parse the incoming date string
                     selected_date_obj = datetime.strptime(
@@ -287,18 +296,20 @@ def get_data():
                     # Format the date to YYYY-MM-DD
                     selected_date = selected_date_obj.strftime("%Y-%m-%d")
                 except ValueError as e:
-                    return jsonify({"error": f"Invalid date format for selectedDate: {str(e)}"}), 400
-            
+                    return jsonify(
+                        {"error": f"Invalid date format for selectedDate: {str(e)}"}
+                    ), 400
+
             for user_data in user_data_documents:
                 # Look through the "detailedEnergyUsageData" in each document and check the date
                 starting = user_data.get("detailedEnergyUsageData", [])
-                for entry in starting[0]:  # Iterate through each document's first entry (assuming the structure)
+                for entry in starting:  # Iterate through each document's first entry (assuming the structure)
                     timestamp = entry.get("timestamp")
                     if timestamp:
                         entry_date = timestamp.split(" ")[0]
                         if entry_date == selected_date:
                             filtered_data.append(entry)
-            
+
             if filtered_data:
                 return jsonify(filtered_data), 200
             else:
@@ -308,13 +319,19 @@ def get_data():
         elif chart_type == "energy-week":
             if start_date:
                 try:
-                    cleaned_start_date = start_date.split(" (")[0]  # Remove everything after " ("
+                    cleaned_start_date = start_date.split(" (")[
+                        0
+                    ]  # Remove everything after " ("
                     # Parse the incoming date string
-                    start_date_obj = datetime.strptime(cleaned_start_date, "%a %b %d %Y %H:%M:%S %Z%z")
+                    start_date_obj = datetime.strptime(
+                        cleaned_start_date, "%a %b %d %Y %H:%M:%S %Z%z"
+                    )
                     # Format the date to YYYY-MM-DD
                     start_date = start_date_obj.strftime("%Y-%m")
                 except ValueError as e:
-                    return jsonify({"error": f"Invalid date format for selectedDate: {str(e)}"}), 400
+                    return jsonify(
+                        {"error": f"Invalid date format for selectedDate: {str(e)}"}
+                    ), 400
 
             # Calculate the start of the week (e.g., Monday)
             start_of_week = start_date_obj - timedelta(days=start_date_obj.weekday())
@@ -327,12 +344,12 @@ def get_data():
             # Now filter for data within this week range
             for user_data in user_data_documents:
                 starting = user_data.get("dailyEnergyData", [])
-                for entry in starting[0]:
+                for entry in starting:
                     date = entry.get("date")
                     if date:
                         if start_of_week_str <= date <= end_of_week_str:
                             filtered_data.append(entry)
-            
+
             if filtered_data:
                 return jsonify(filtered_data), 200
             else:
@@ -344,15 +361,19 @@ def get_data():
 
             # Loop through the documents
             for user_data in user_data_documents:
-                starting = user_data.get("dailyEnergyData", [])  # Get the dailyEnergyData from each document
-                for entry in starting[0]:
+                starting = user_data.get(
+                    "dailyEnergyData", []
+                )  # Get the dailyEnergyData from each document
+                for entry in starting:
                     date = entry.get("date")
                     if date:
                         # Check if the date matches the given month and year
                         entry_date_obj = datetime.strptime(date, "%Y-%m-%d")
-                        if entry_date_obj.month == int(month) and entry_date_obj.year == int(year):
+                        if entry_date_obj.month == int(
+                            month
+                        ) and entry_date_obj.year == int(year):
                             filtered_month_data.append(entry)
-            
+
             if filtered_month_data:
                 return jsonify(filtered_month_data), 200
             else:
@@ -364,15 +385,17 @@ def get_data():
 
             # Loop through the documents
             for user_data in user_data_documents:
-                starting = user_data.get("monthlyEnergyData", [])  # Get the dailyEnergyData from each document
-                for entry in starting[0]:
+                starting = user_data.get(
+                    "monthlyEnergyData", []
+                )  # Get the dailyEnergyData from each document
+                for entry in starting:
                     date = entry.get("date")
                     if date:
                         # Check if the date matches the given year
                         entry_date_obj = datetime.strptime(date, "%Y-%m")
                         if entry_date_obj.year == int(year):
                             filtered_year_data.append(entry)
-            
+
             if filtered_year_data:
                 print(filtered_year_data)
                 return jsonify(filtered_year_data), 200
@@ -381,6 +404,100 @@ def get_data():
 
         else:
             return jsonify({"error": "Invalid chart type"}), 400
+
+    except Exception as e:
+        return jsonify({"error": f"Failed to get data: {str(e)}"}), 500
+
+
+@app.route("/transData", methods=["GET"])
+def get_trans_data():
+    userID = request.args.get("userID")
+    selected_date = request.args.get("selectedDate")
+    chart_type = request.args.get("chartType")
+    start_date = request.args.get("startDate")  # The date to filter on
+    end_date = request.args.get(
+        "endDate"
+    )  # For other types like week/month/year, if needed
+    month = request.args.get("month")
+    year = request.args.get("year")
+
+    print(userID, selected_date, chart_type, start_date, end_date, month, year)
+
+    if not userID:
+        return jsonify({"error": "userID is required"}), 400
+
+    try:
+        # Query all documents with the given userID
+        user_data_documents = myCollection.find({"userID": userID}, {"_id": 0})
+
+        if not user_data_documents:
+            return jsonify({"error": "User not found"}), 404
+
+        filtered_data = []
+
+        # Handle energy-week first
+        if chart_type == "transportation-week":
+            if start_date:
+                try:
+                    cleaned_start_date = start_date.split(" (")[
+                        0
+                    ]  # Remove everything after " ("
+                    # Parse the incoming date string
+                    start_date_obj = datetime.strptime(
+                        cleaned_start_date, "%a %b %d %Y %H:%M:%S %Z%z"
+                    )
+                    # Format the date to YYYY-MM-DD
+                    start_date = start_date_obj.strftime("%Y-%m")
+                except ValueError as e:
+                    return jsonify(
+                        {"error": f"Invalid date format for selectedDate: {str(e)}"}
+                    ), 400
+
+            # Calculate the start of the week (e.g., Monday)
+            start_of_week = start_date_obj - timedelta(days=start_date_obj.weekday())
+            end_of_week = start_of_week + timedelta(days=6)  # End of the week (Sunday)
+
+            # Format dates for query
+            start_of_week_str = start_of_week.strftime("%Y-%m-%d")
+            end_of_week_str = end_of_week.strftime("%Y-%m-%d")
+
+            # Now filter for data within this week range
+            for user_data in user_data_documents:
+                data = user_data.get("transportationData", [])
+                for entry in data:
+                    date = entry.get("date")
+                    if date:
+                        if start_of_week_str <= date <= end_of_week_str:
+                            filtered_data.append(entry)
+
+            if filtered_data:
+                return jsonify(filtered_data), 200
+            else:
+                return jsonify({"error": "No data found for the specified week"}), 404
+
+        # Handle energy-month
+        elif chart_type == "transportation-month" and month and year:
+            filtered_month_data = []
+
+            # Loop through the documents
+            for user_data in user_data_documents:
+                data = user_data.get(
+                    "transportationData", []
+                )  # Get the dailyEnergyData from each document
+                for entry in data:
+                    date = entry.get("date")
+                    if date:
+                        # Check if the date matches the given month and year
+                        entry_date_obj = datetime.strptime(date, "%Y-%m-%d")
+                        if entry_date_obj.month == int(
+                            month
+                        ) and entry_date_obj.year == int(year):
+                            filtered_month_data.append(entry)
+
+            if filtered_month_data:
+                return jsonify(filtered_month_data), 200
+            else:
+                return jsonify({"error": "No data found for the specified month"}), 404
 
     except Exception as e:
         return jsonify({"error": f"Failed to get data: {str(e)}"}), 500
