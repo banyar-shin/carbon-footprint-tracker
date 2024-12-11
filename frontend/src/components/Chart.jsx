@@ -19,8 +19,12 @@ const Chart = ({ chartType, data }) => {
 
   // Function to format the date to a more readable format, e.g., "July 1, 2024"
   const formatDate = (dateStr) => {
-    const date = new Date(dateStr);
-    const options = { year: 'numeric', month: 'long', day: 'numeric' };
+    if (dateStr === undefined) {
+      return
+    }
+    const [year, month, day] = dateStr.split('-');
+    const date = new Date(year, month - 1, day);
+    const options = { year: 'numeric', month: 'short', day: 'numeric' };
     return date.toLocaleDateString('en-US', options); // Formats to 'Month day, year'
   };
 
@@ -42,38 +46,33 @@ const Chart = ({ chartType, data }) => {
     switch (chartType) {
       case 'energy-day':
         labels = data.map((entry) => entry.timestamp?.substring(11)); // Extract time from timestamp
-        plot_data = data.map((entry) => entry.carbon_footprint); // Use carbon footprint
-        title = 'Detailed Daily Carbon Footprint';
+        plot_data = data.map((entry) => entry.net_energy_kwh); // Use carbon footprint
+        title = 'Daily Energy Usage';
         break;
       case 'energy-week':
         labels = data.map((entry) => formatDate(entry.date));
-        plot_data = data.map((entry) => entry.carbon_footprint);
-        title = 'Daily Carbon Footprint Summary';
+        plot_data = data.map((entry) => entry.net_energy_kwh);
+        title = 'Weekly Energy Usage';
         break;
       case 'energy-month':
         labels = data.map((entry) => entry.date);
         plot_data = data.map((entry) => entry.net_energy_kwh);
-        title = 'Monthly Carbon Footprint Summary';
+        title = 'Monthly Energy Usage';
         break;
       case 'energy-year':
         labels = data.map((entry) => entry.date);
-        plot_data = data.map((entry) => entry.carbon_footprint);
-        title = 'Yearly Carbon Footprint Summary';
+        plot_data = data.map((entry) => entry.usage);
+        title = 'Yearly Energy Usage';
         break;
       case 'transportation-week':
-        labels = data.map((entry) => entry.date);
-        plot_data = data.map((entry) => entry.carbon_footprint);
-        title = 'Daily Carbon Footprint Summary';
+        labels = data.map((entry) => formatDate(entry.date));
+        plot_data = data.map((entry) => entry.miles_driven);
+        title = 'Weekly Miles Driven';
         break;
       case 'transportation-month':
         labels = data.map((entry) => entry.date);
-        plot_data = data.map((entry) => entry.carbon_footprint);
-        title = 'Monthly Carbon Footprint Summary';
-        break;
-      case 'transportation-year':
-        labels = data.map((entry) => entry.date);
-        plot_data = data.map((entry) => entry.carbon_footprint);
-        title = 'Yearly Carbon Footprint Summary';
+        plot_data = data.map((entry) => entry.miles_driven);
+        title = 'Monthly Miles Driven';
         break;
       default:
         console.error("Invalid chart type provided.");
@@ -90,8 +89,7 @@ const Chart = ({ chartType, data }) => {
       labels,
       datasets: [
         {
-          // TODO for includes transportation
-          label: chartType.includes('energy') ? 'Carbon Footprint (kg CO2)' : 'Energy (kWh)',
+          label: chartType.includes('energy') ? 'Energy (kWh)' : chartType.includes('transportation') ? 'Miles Driven (miles)' : 'Carbon Footprint (kg CO2)',
           data: plot_data,
           backgroundColor: 'rgba(75, 192, 192, 0.5)',
           borderColor: 'rgba(75, 192, 192, 1)',
@@ -119,7 +117,8 @@ const Chart = ({ chartType, data }) => {
       {chartData && chartOptions ? (
         <Bar data={chartData} options={chartOptions} />
       ) : (
-        <div className="text-center flex items-center justify-center text-3xl">
+        <div className="text-center flex items-center justify-center text-lg">
+          No data to display chart!
         </div>
       )}
     </>

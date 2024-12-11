@@ -40,9 +40,11 @@ export default function General() {
       if (!userId) {
         throw new Error('Submission failed: Invalid UserID')
       }
+      const date = new Date();
+      const formattedDate = date.toISOString().split('T')[0];
 
       const data = {
-        date: new Date().toLocaleDateString('en-US'),
+        date: formattedDate,
         miles_driven: parseInt(milesDriven, 10),
         carpool_count: carpool, // Send the integer value to the backend
         userID: userId,

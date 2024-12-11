@@ -13,7 +13,6 @@ def parseMonthCSVSolar(file, userID):
     # Drop the START TIME AND NOTES AND TYPE
     df = df.drop(columns=["TYPE", "START TIME", "NOTES"])
 
-
     # Standardize the 'DATE' column
     df["DATE"] = df["DATE"].apply(standardize_date)
 
@@ -25,7 +24,6 @@ def parseMonthCSVSolar(file, userID):
     )
     df = df.drop(columns=["END TIME"])
 
-  
     # Calculate daily energy usage (including import and export)
     dailyEnergyUsage = (
         df.groupby("DATE")
@@ -45,7 +43,7 @@ def parseMonthCSVSolar(file, userID):
     for index, row in df.iterrows():
         # Parse the time string into a datetime object
         time_obj = datetime.strptime(row["TIME"], "%H:%M")
-        if time_obj.minute == 30 or time_obj.minute == 00:  
+        if time_obj.minute == 30 or time_obj.minute == 00:
             detailedEnergyUsageData.append(
                 {
                     "timestamp": f"{row['DATE']} {row['TIME']}",
@@ -68,15 +66,16 @@ def parseMonthCSVSolar(file, userID):
                 "total_export_kwh": row["EXPORT (kWh)"],
                 "net_energy_kwh": round(row["Net Energy (kWh)"], 4),
                 "carbon_footprint": round(row["Carbon Footprint (Kg CO2)"], 6),
-            })
-        
+            }
+        )
+
     # Insert into MongoDB
     myCollection.update_one(
         {"userID": userID},
         {
-            "$push": {
-                "detailedEnergyUsageData": detailedEnergyUsageData,
-                "dailyEnergyData": dailyEnergyData,
+            "$addToSet": {
+                "detailedEnergyUsageData": {"$each": detailedEnergyUsageData},
+                "dailyEnergyData": {"$each": dailyEnergyData},
             }
         },
         upsert=True,
@@ -91,7 +90,6 @@ def parseMonthCSV(file, userID):
     # Drop the START TIME AND NOTES AND TYPE
     df = df.drop(columns=["TYPE", "START TIME", "NOTES"])
 
-
     # Standardize the 'DATE' column
     df["DATE"] = df["DATE"].apply(standardize_date)
 
@@ -104,11 +102,7 @@ def parseMonthCSV(file, userID):
     df = df.drop(columns=["END TIME"])
 
     # Calculate daily energy usage (including import and export)
-    dailyEnergyUsage = (
-        df.groupby("DATE")
-        .agg({"USAGE (kWh)": "sum"})
-        .reset_index()
-    )
+    dailyEnergyUsage = df.groupby("DATE").agg({"USAGE (kWh)": "sum"}).reset_index()
 
     dailyEnergyUsage["Carbon Footprint (Kg CO2)"] = (
         dailyEnergyUsage["USAGE (kWh)"] * CO2_PER_KWH
@@ -119,14 +113,12 @@ def parseMonthCSV(file, userID):
     for index, row in df.iterrows():
         # Parse the time string into a datetime object
         time_obj = datetime.strptime(row["TIME"], "%H:%M")
-        if time_obj.minute == 30 or time_obj.minute == 00:  
+        if time_obj.minute == 30 or time_obj.minute == 00:
             detailedEnergyUsageData.append(
                 {
                     "timestamp": f"{row['DATE']} {row['TIME']}",
                     "usage_kwh": row["USAGE (kWh)"],
-                    "carbon_footprint": round(
-                        (row["USAGE (kWh)"]) * CO2_PER_KWH, 6
-                    ),
+                    "carbon_footprint": round((row["USAGE (kWh)"]) * CO2_PER_KWH, 6),
                 }
             )
 
@@ -138,15 +130,16 @@ def parseMonthCSV(file, userID):
                 "date": row["DATE"],
                 "total_usage_kwh": row["USAGE (kWh)"],
                 "carbon_footprint": round(row["Carbon Footprint (Kg CO2)"], 6),
-            })
-        
+            }
+        )
+
     # Insert into MongoDB
     myCollection.update_one(
         {"userID": userID},
         {
-            "$push": {
-                "detailedEnergyUsageData": detailedEnergyUsageData,
-                "dailyEnergyData": dailyEnergyData,
+            "$addToSet": {
+                "detailedEnergyUsageData": {"$each": detailedEnergyUsageData},
+                "dailyEnergyData": {"$each": dailyEnergyData},
             }
         },
         upsert=True,
@@ -157,7 +150,6 @@ def parseMonthCSV(file, userID):
 
 def standardize_date(dateString):
     return parser.parse(dateString).strftime("%Y-%m-%d")
-      
 
 
 def parseAnnualCSV(file, userID):
@@ -182,10 +174,13 @@ def parseAnnualCSV(file, userID):
             }
         )
 
-    # Insert into MongoDB
     myCollection.update_one(
         {"userID": userID},
-        {"$push": {"monthlyEnergyData": monthlyEnergyData}},
+        {
+            "$addToSet": {
+                "monthlyEnergyData": {"$each": monthlyEnergyData},
+            }
+        },
         upsert=True,
     )
 
@@ -233,6 +228,7 @@ def getEnergyProduced(userID, date):
         print(f"Error getting energy info: {str(e)}")
         return None
 
+
 def setSolarTrue(userID):
     # Prepare power data
     energyData = {"hasSolar": True}
@@ -240,7 +236,7 @@ def setSolarTrue(userID):
     myCollection.update_one(
         {"userID": userID}, {"$set": {"energyData": energyData}}, upsert=True
     )
-    
+
 
 def setSolarFalse(userID):
     # Prepare power data
@@ -249,4 +245,3 @@ def setSolarFalse(userID):
     myCollection.update_one(
         {"userID": userID}, {"$set": {"energyData": energyData}}, upsert=True
     )
-
