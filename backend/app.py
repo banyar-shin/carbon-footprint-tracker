@@ -57,12 +57,8 @@ def dailyForm():
     
     vehicleInfo = getVehicleData(userID)
 
-    energyInfo = getEnergyData(userID)
-
-
     # Get from form
     date = data.get("date")
-    date = "12/11/2024"
 
     # If user did not enter in Miles Driven use average miles driven to calculate
     if(data.get("miles_driven") is None):
