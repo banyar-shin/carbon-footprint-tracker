@@ -29,22 +29,56 @@ CORS(app, resources={r"/*": {"origins": "*"}})
 def home():
     return "It works!"
 
+@app.route("/checkVehicle", methods=["GET"])
+def checkVehicleData():
+    try:
+        # Extract userID from the query string
+        userID = request.args.get("userID")
+        # Query the MongoDB collection for vehicle information
+        vehicleSettings = myCollection.find_one({"userID": userID, "vehicleData": {"$exists": True}})
 
-# TODO do the EV solar thing
-# TODO the wh_mile None thing
+
+
+
+
+
+        if vehicleSettings:
+            return jsonify({"success": True, "vehicleData": vehicleSettings.get("vehicleData")}), 200
+        else:
+            return jsonify({"success": False}), 200
+    except Exception as e:
+        print(f"Error getting vehicle info: {str(e)}")
+        return None
+
 @app.route("/dailyform", methods=["POST"])
 def dailyForm():
     # default carpool
     carpool_count = 1
     data = request.get_json()
     userID = data.get("userID")
+
+    if not userID:
+        return jsonify({"Error": "userID is required"}), 400
+    
     vehicleInfo = getVehicleData(userID)
+
     energyInfo = getEnergyData(userID)
+
 
     # Get from form
     date = data.get("date")
-    miles_driven = int(data.get("miles_driven"))
+
+    # If user did not enter in Miles Driven use average miles driven to calculate
+    if(data.get("miles_driven") is None):
+        miles_driven = (vehicleInfo.get("avg_miles")/365)
+    else:
+        miles_driven = int(data.get("miles_driven"))
     carpool_count = int(data.get("carpool_count"))
+
+
+
+    if carpool_count == 0:
+        carpool_count = 1
 
     if not (vehicleInfo.get("wh_mile")):
         mpg = vehicleInfo.get("mpg")
@@ -52,23 +86,34 @@ def dailyForm():
        wh_mile = vehicleInfo.get("wh_mile")
     fuel_type = vehicleInfo.get("fuel_type")
 
-    # If user did not enter in Miles Driven use average miles driven to calculate
-    if miles_driven is None:
-        miles_driven = (getVehicleData("avg_miles")/365)
+  
 
     # Calculate carbon footprint based on vehicle type
     if fuel_type == "EV":
+
         energyUsedDriving = ((miles_driven * wh_mile) / 1000)
-        
-        if energyInfo.get("hasSolar") == True:
+
+
+        if energyInfo is None:
+            carbon_footprint = (energyUsedDriving) * CO2_PER_KWH / carpool_count
+
+        elif energyInfo.get("hasSolar") == True:
             energyProducedInDay = getEnergyProduced(userID, date)
             if energyProducedInDay > energyUsedDriving: # Used less energy driving than generated
                 carbon_footprint = (-energyProducedInDay - energyUsedDriving) * CO2_PER_KWH / carpool_count 
             elif energyProducedInDay < energyUsedDriving: # Used more energy driving than generated
                 carbon_footprint = (energyUsedDriving - energyProducedInDay) * CO2_PER_KWH / carpool_count 
 
-        else: # No Solar installed
+        elif energyInfo.get("hasSolar") == False: # No Solar installed
             carbon_footprint = (energyUsedDriving) * CO2_PER_KWH / carpool_count
+            
+            energyProducedInDay = getEnergyProduced(userID, date)
+            if energyProducedInDay > energyUsedDriving: # Used less energy driving than generated
+                carbon_footprint = (-energyProducedInDay - energyUsedDriving) * CO2_PER_KWH / carpool_count 
+            elif energyProducedInDay < energyUsedDriving: # Used more energy driving than generated
+                carbon_footprint = (energyUsedDriving - energyProducedInDay) * CO2_PER_KWH / carpool_count 
+        else:
+            return jsonify({"error": "Cannot retrieve energy info"}), 400
 
     elif fuel_type == "Diesel":
         carbon_footprint = (miles_driven / mpg) * CO2_DIESEL / carpool_count
@@ -83,7 +128,7 @@ def dailyForm():
     # Insert into MongoDB
     myCollection.update_one(
         {"userID": userID},
-        {"$push": {"transportationData": carbon_footprint}},
+        {"$set": {"transportationData": carbon_footprint}},
         upsert=True,
     )
     return jsonify({"Pass": "Updated Daily Form Information"}), 200
@@ -119,23 +164,6 @@ def transportSettings():
 
     return jsonify({"Pass": "Updated Transportation Information"}), 200
 
-
-@app.route("/energy", methods=["POST"])
-def energySettings():
-    data = request.get_json()
-    userID = data.get("userID")
-
-    # Extract data from the request
-    hasSolar = bool(data.get("hasSolar"))
-
-    # Prepare power data
-    energyData = {"hasSolar": hasSolar}
-
-    myCollection.update_one(
-        {"userID": userID}, {"$set": {"energyData": energyData}}, upsert=True
-    )
-
-    return jsonify({"Pass": "Updated Energy Information"}), 200
 
 
 @app.route("/upload", methods=["POST"])

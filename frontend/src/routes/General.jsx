@@ -1,14 +1,73 @@
 import { useState } from 'react'
 import { useAuth } from '@clerk/clerk-react'
 import Chart from './../components/Chart'
+import { useNavigate } from 'react-router-dom'
 
 export default function General() {
-  const { userId } = useAuth()
+  const { userId } = useAuth();
+  const [timeframe, setTimeframe] = useState("daily");
+  const [ vehicleDataExists, setVehicleDataExists] = useState(false);
+  const navigate = useNavigate();
   const [chart, setChart] = useState('general-week')
+  
+  
+  const checkVehicleData = async () => {
+    if (!userId) return;
+    try {
+      const response = await fetch(`http://localhost:5001/checkVehicle?userID=${userId}`);
+      if (!response.ok) throw new Error("Error fetching vehicle data");
 
+      const data = await response.json();
+      if (data.success == true) {
+        setVehicleDataExists(true);
+        document.getElementById('add_data_modal').showModal();
+      } else {
+        alert("You need to configure your transportation settings first.");
+        navigate("/dashboard/transport");
+      }
+    } catch (error) {
+      console.error("Error checking vehicle data:", error);
+      alert("An error occurred while verifying your vehicle data.");
+    }
+  };
+  
   const handleDailyForm = async (event) => {
     event.preventDefault();
-    // TODO: implement handleDailyForm function (follow handleUpload)
+
+    const formData = new FormData(event.target)
+    const milesDriven = formData.get('miles_driven')
+    const carpool = formData.get('carpool') ? parseInt(formData.get('carpool'), 10) : 0; // Parse the carpool value as an integer
+
+    try {
+      if (!userId) {
+        throw new Error('Submission failed: Invalid UserID')
+      }
+
+      const data = {
+        date: new Date().toLocaleDateString('en-US'),
+        miles_driven: parseInt(milesDriven, 10),
+        carpool_count: carpool, // Send the integer value to the backend
+        userID: userId,
+      }
+
+      const response = await fetch('http://localhost:5001/dailyform', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      })
+
+      if (!response.ok) {
+        throw new Error(`Submission failed: ${response.statusText}`)
+      }
+
+      alert('Data submitted successfully!')
+      document.getElementById('add_data_modal').close()
+    } catch (error) {
+      console.error('Error submitting data:', error)
+      alert('Failed to submit data. Please try again.');
+    }
   }
 
   const handleUpload = async (event) => {
@@ -49,7 +108,6 @@ export default function General() {
       console.log('Upload successful:', data);
 
       fileInput.value = '';
-
       document.getElementById('upload_csv_modal').close();
 
       alert('File uploaded successfully!');
@@ -63,11 +121,11 @@ export default function General() {
   return (
     <div className="h-full overflow-y-auto p-4 items-center text-center text-base-content space-y-4" >
       <div className="p-6 bg-base-200 rounded-lg grid grid-cols-2 gap-6 justify-center">
-        <button className="btn btn-secondary w-full" onClick={() => document.getElementById('upload_csv_modal').showModal()}>
+        <button className="btn btn-secondary w-full" onClick={() => document.getElementById('upload_csv_modal').showModal()} >
           Upload PG&E File
         </button>
-        <button className="btn btn-secondary w-full" onClick={() => document.getElementById('add_data_modal').showModal()}>
-          Add Today's Data
+        <button className="btn btn-secondary w-full" onClick={checkVehicleData} >
+          Add Today's Transportation Data
         </button>
       </div>
 
@@ -138,10 +196,21 @@ export default function General() {
             <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
           </form>
           <h3 className="font-bold w-full text-xl py-6">Add Today's Data</h3>
-          <form onSubmit={handleDailyForm} className='w-full flex flex-col px-6 py-12 rounded-xl bg-base-200 justify-center items-center'>
-            {/* TODO: Daily Form: Use components from here: https://daisyui.com/components/select/ */}
-            <div className='divider' />
-            <div className='w-full px-24'>
+          <form onSubmit={handleDailyForm} className="w-full flex flex-col px-6 py-12 rounded-xl bg-base-200 justify-center items-center">
+            <label className="form-control w-full max-w-xs">
+              <div className="label">
+                <span className="label-text font-semibold">Miles Driven</span>
+              </div>
+              <input type="number" name="miles_driven" className="input input-bordered max-w-xs"  />
+            </label>
+            <label className="form-control w-full max-w-xs">
+              <div className="label">
+                <span className="label-text font-semibold">Carpool Count</span>
+              </div>
+              <input type="number" name="carpool" className="input input-bordered max-w-xs" required />
+            </label>
+            <div className="divider" />
+            <div className="w-full px-24">
               <button type="submit" className="btn btn-primary w-full">
                 Submit
               </button>
@@ -149,6 +218,6 @@ export default function General() {
           </form>
         </div>
       </dialog>
-    </div >
+    </div>
   );
 }

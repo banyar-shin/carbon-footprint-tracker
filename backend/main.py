@@ -249,3 +249,4 @@ def setSolarFalse(userID):
     myCollection.update_one(
         {"userID": userID}, {"$set": {"energyData": energyData}}, upsert=True
     )
+
