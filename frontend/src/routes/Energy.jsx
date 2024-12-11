@@ -106,9 +106,9 @@ export default function Energy() {
       </div>
 
       {/* Top Options */}
-      <div className="relative w-full flex items-center p-6 bg-base-200">
+      <div className="relative w-full flex items-center px-6 pt-6 bg-base-200">
         {/* Centered Buttons Container */}
-        <div className="relative w-1/4 h-12 bg-base-100 rounded-lg overflow-hidden mx-auto">
+        <div className="relative w-1/2 h-12 bg-base-100 rounded-lg overflow-hidden mx-auto">
           <div
             className="absolute top-[4px] bottom-[4px] h-[calc(100%-8px)] bg-primary rounded-md transition-transform duration-300"
             style={{
@@ -144,7 +144,7 @@ export default function Energy() {
         </div>
 
         {/* Upload Button on Far Right */}
-        <div className="absolute right-0 top-0 h-full flex items-center mr-6 bg-base-200">
+        <div className="absolute right-0 top-0 h-full flex items-center pt-6 pr-6 bg-base-200">
           <label htmlFor="file-upload" className="btn btn-circle btn-primary">
             <FaPlus />
           </label>
@@ -158,80 +158,84 @@ export default function Energy() {
         </div>
       </div>
 
-      <div className="w-full bg-base-200 flex flex-col justify-center items-center rounded-b-lg px-6 pb-6">
-        {/* Show calendar for day, start & end dates for week, month dropdown, and year input box */}
-        {showCalendar && chart === 'energy-day' && (
-          <div className="">
-            <DatePicker
-              selected={selectedDate}
-              onChange={(date) => setSelectedDate(date)}
-              dateFormat="yyyy-MM-dd"
-              className="p-2 border rounded-md"
-            />
-          </div>
-        )}
-
-        {showCalendar && chart === 'energy-week' && (
-          <div className="flex space-x-4">
-            <div>
-              <span>Start Date</span>
+      <div className="w-full bg-base-200 flex flex-col justify-center items-center rounded-b-lg pb-6 px-6">
+        <div className="py-4">
+          {/* Show calendar for day, start & end dates for week, month dropdown, and year input box */}
+          {showCalendar && chart === 'energy-day' && (
+            <div className="flex">
+              <span className="flex mr-2 text-center items-center justify-center">Date:</span>
               <DatePicker
-                selected={startDate}
-                onChange={(date) => setStartDate(date)}
+                selected={selectedDate}
+                onChange={(date) => setSelectedDate(date)}
                 dateFormat="yyyy-MM-dd"
-                className="p-2 border rounded-md"
+                className="p-2 border w-32 rounded-md"
               />
             </div>
-            <div>
-              <span>End Date</span>
-              <DatePicker
-                selected={endDate}
-                onChange={(date) => setEndDate(date)}
-                dateFormat="yyyy-MM-dd"
+          )}
+
+          {showCalendar && chart === 'energy-week' && (
+            <div className="flex space-x-4">
+              <div>
+                <span className="mr-3 text-center items-center justify-center">Start:</span>
+                <DatePicker
+                  selected={startDate}
+                  onChange={(date) => setStartDate(date)}
+                  dateFormat="yyyy-MM-dd"
+                  className="p-2 border w-32 rounded-md"
+                />
+              </div>
+              <div>
+                <span className="mr-3 text-center items-center justify-center">End:</span>
+                <DatePicker
+                  selected={endDate}
+                  onChange={(date) => setEndDate(date)}
+                  dateFormat="yyyy-MM-dd"
+                  className="p-2 border w-32 rounded-md"
+                />
+              </div>
+            </div>
+          )}
+
+          {showCalendar && chart === 'energy-month' && (
+            <div className="flex items-center space-x-3">
+              <span>Month:</span>
+              <select
+                id="month-select"
+                value={selectedMonth}
+                onChange={(e) => setSelectedMonth(e.target.value)}
                 className="p-2 border rounded-md"
+              >
+                <option value="">Select a month</option>
+                <option value="01">January</option>
+                <option value="02">February</option>
+                <option value="03">March</option>
+                <option value="04">April</option>
+                <option value="05">May</option>
+                <option value="06">June</option>
+                <option value="07">July</option>
+                <option value="08">August</option>
+                <option value="09">September</option>
+                <option value="10">October</option>
+                <option value="11">November</option>
+                <option value="12">December</option>
+              </select>
+            </div>
+          )}
+
+          {showCalendar && chart === 'energy-year' && (
+            <div className="flex items-center text-center space-x-3">
+              <span>Year:</span>
+              <input
+                type="number"
+                value={selectedYear}
+                onChange={(e) => setSelectedYear(Number(e.target.value))}
+                className="p-2 border rounded-md text-center w-32"
+                min={1900}
+                max={2100}
               />
             </div>
-          </div>
-        )}
-
-        {showCalendar && chart === 'energy-month' && (
-          <div className="">
-            <select
-              id="month-select"
-              value={selectedMonth}
-              onChange={(e) => setSelectedMonth(e.target.value)}
-              className="p-2 border rounded-md"
-            >
-              <option value="">Select a month</option>
-              <option value="01">January</option>
-              <option value="02">February</option>
-              <option value="03">March</option>
-              <option value="04">April</option>
-              <option value="05">May</option>
-              <option value="06">June</option>
-              <option value="07">July</option>
-              <option value="08">August</option>
-              <option value="09">September</option>
-              <option value="10">October</option>
-              <option value="11">November</option>
-              <option value="12">December</option>
-            </select>
-          </div>
-        )}
-
-        {showCalendar && chart === 'energy-year' && (
-          <div className="flex items-center space-x-2">
-            <input
-              type="number"
-              value={selectedYear}
-              onChange={(e) => setSelectedYear(Number(e.target.value))}
-              className="p-2 border rounded-md text-center w-32"
-              min={1900}
-              max={2100}
-            />
-          </div>
-        )}
-
+          )}
+        </div>
         {/* Chart */}
         <Chart chartType={chart} data={data} />
       </div>
