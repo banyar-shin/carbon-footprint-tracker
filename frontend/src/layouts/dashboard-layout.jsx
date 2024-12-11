@@ -15,7 +15,7 @@ export default function DashboardLayout() {
   }, [isLoaded])
 
   if (!isLoaded) return (
-    <div id="error-page" className="flex flex-col w-full h-full items-center justify-center text-center text-base-content">
+    <div id="error-page" className="flex flex-col w-full h-[calc(100vh-5rem)] items-center justify-center text-center text-base-content">
       <h1 className="text-3xl font-bold">Loading...</h1>
       <p className="text-xl">Thank you for your patience.</p>
     </div>

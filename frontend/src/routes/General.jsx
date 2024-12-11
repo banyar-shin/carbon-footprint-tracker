@@ -4,13 +4,11 @@ import Chart from './../components/Chart'
 import { useNavigate } from 'react-router-dom'
 
 export default function General() {
-  const { userId } = useAuth();
-  const [timeframe, setTimeframe] = useState("daily");
-  const [ vehicleDataExists, setVehicleDataExists] = useState(false);
   const navigate = useNavigate();
+  const { userId } = useAuth();
   const [chart, setChart] = useState('general-week')
-  
-  
+  const [vehicleDataExists, setVehicleDataExists] = useState(false);
+
   const checkVehicleData = async () => {
     if (!userId) return;
     try {
@@ -30,7 +28,7 @@ export default function General() {
       alert("An error occurred while verifying your vehicle data.");
     }
   };
-  
+
   const handleDailyForm = async (event) => {
     event.preventDefault();
 
@@ -201,7 +199,7 @@ export default function General() {
               <div className="label">
                 <span className="label-text font-semibold">Miles Driven</span>
               </div>
-              <input type="number" name="miles_driven" className="input input-bordered max-w-xs"  />
+              <input type="number" name="miles_driven" className="input input-bordered max-w-xs" />
             </label>
             <label className="form-control w-full max-w-xs">
               <div className="label">
