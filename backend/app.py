@@ -39,7 +39,6 @@ def checkVehicleData():
         vehicleSettings = myCollection.find_one(
             {"userID": userID, "vehicleData": {"$exists": True}}
         )
-
         if vehicleSettings:
             return jsonify(
                 {"success": True, "vehicleData": vehicleSettings.get("vehicleData")}
@@ -63,8 +62,6 @@ def dailyForm():
 
     vehicleInfo = getVehicleData(userID)
 
-    energyInfo = getEnergyData(userID)
-
     # Get from form
     date = data.get("date")
 
@@ -86,52 +83,8 @@ def dailyForm():
 
     # Calculate carbon footprint based on vehicle type
     if fuel_type == "EV":
-        energyUsedDriving = (miles_driven * wh_mile) / 1000
-
-        if energyInfo is None:
-            carbon_footprint = (energyUsedDriving) * CO2_PER_KWH / carpool_count
-
-        elif energyInfo.get("hasSolar") == True:
-            energyProducedInDay = getEnergyProduced(userID, date)
-            if (
-                energyProducedInDay > energyUsedDriving
-            ):  # Used less energy driving than generated
-                carbon_footprint = (
-                    (-energyProducedInDay - energyUsedDriving)
-                    * CO2_PER_KWH
-                    / carpool_count
-                )
-            elif (
-                energyProducedInDay < energyUsedDriving
-            ):  # Used more energy driving than generated
-                carbon_footprint = (
-                    (energyUsedDriving - energyProducedInDay)
-                    * CO2_PER_KWH
-                    / carpool_count
-                )
-
-        elif energyInfo.get("hasSolar") == False:  # No Solar installed
-            carbon_footprint = (energyUsedDriving) * CO2_PER_KWH / carpool_count
-
-            energyProducedInDay = getEnergyProduced(userID, date)
-            if (
-                energyProducedInDay > energyUsedDriving
-            ):  # Used less energy driving than generated
-                carbon_footprint = (
-                    (-energyProducedInDay - energyUsedDriving)
-                    * CO2_PER_KWH
-                    / carpool_count
-                )
-            elif (
-                energyProducedInDay < energyUsedDriving
-            ):  # Used more energy driving than generated
-                carbon_footprint = (
-                    (energyUsedDriving - energyProducedInDay)
-                    * CO2_PER_KWH
-                    / carpool_count
-                )
-        else:
-            return jsonify({"error": "Cannot retrieve energy info"}), 400
+        energyUsedDriving = ((miles_driven * wh_mile) / 1000)
+        carbon_footprint = (energyUsedDriving) * CO2_PER_KWH / carpool_count
 
     elif fuel_type == "Diesel":
         carbon_footprint = (miles_driven / mpg) * CO2_DIESEL / carpool_count
@@ -140,15 +93,30 @@ def dailyForm():
     else:
         return jsonify({"error": "Unknown vehicle type"}), 400
 
-    # Prepare carbonfootprint data
-    carbon_footprint = {"date": date, "carbon_footprint": carbon_footprint}
 
-    # Insert into MongoDB
-    myCollection.update_one(
-        {"userID": userID},
-        {"$set": {"transportationData": carbon_footprint}},
-        upsert=True,
-    )
+    # Prepare carbon footprint data
+    carbon_footprint_data = {"date": date, "carbon_footprint": carbon_footprint}
+
+    # Check if the record for the given date already exists
+    user_data = myCollection.find_one({"userID": userID, "transportationData.date": date})
+
+    if user_data:
+        # Update the existing record
+        myCollection.update_one(
+            {"userID": userID, "transportationData.date": date},
+            {"$set": {"transportationData.$.carbon_footprint": carbon_footprint}}
+        )
+    else:
+        # Insert a new record
+        myCollection.update_one(
+            {"userID": userID},
+            {
+                "$push": {
+                    "transportationData": carbon_footprint_data,
+                }
+            },
+            upsert=True,
+        )
     return jsonify({"Pass": "Updated Daily Form Information"}), 200
 
 
@@ -349,6 +317,38 @@ def get_data():
             ]
             return jsonify(all_data), 200
 
+        else:
+            return jsonify({"error": "Invalid chart type"}), 400
+
+    except Exception as e:
+        return jsonify({"error": f"Failed to get data: {str(e)}"}), 500
+
+
+@app.route("/transData", methods=["GET"])
+def get_trans_data():
+    userID = request.args.get("userID")
+    chart_type = request.args.get("chartType")
+    start_date = request.args.get("startDate")  # The date to filter on
+    end_date = request.args.get("endDate")  # For other types like week/month/year, if needed
+    month = request.args.get("month")
+    year = request.args.get("year")
+
+    if not userID:
+        return jsonify({"error": "userID is required"}), 400
+    
+    try:
+        # Query all documents with the given userID
+        user_data_documents = myCollection.find({"userID": userID}, {"_id": 0})
+        if not user_data_documents:
+            return jsonify({"error": "User not found"}), 404
+        
+        # If the chart type is for week/month/year, return the full dailyEnergyData
+        if chart_type in ["transportation-week", "transportation-month", "transportation-year"]:
+            # Returning all data from dailyEnergyData across all documents
+            all_data = [user_data.get("transportationData") for user_data in user_data_documents]
+            print(all_data)
+            return jsonify(all_data), 200
+        
         else:
             return jsonify({"error": "Invalid chart type"}), 400
 
