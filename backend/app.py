@@ -325,24 +325,12 @@ def get_data():
     month = request.args.get("month")
     year = request.args.get("year")
 
-    # Convert selectedDate to YYYY-MM-DD format
-    if selected_date:
-        try:
-            cleaned_date = selected_date.split(" (")[0]  # Remove everything after " ("
-            # Parse the incoming date string
-            selected_date_obj = datetime.strptime(cleaned_date, "%a %b %d %Y %H:%M:%S %Z%z")
-            # Format the date to YYYY-MM-DD
-            selected_date = selected_date_obj.strftime("%Y-%m-%d")
-        except ValueError as e:
-            return jsonify({"error": f"Invalid date format for selectedDate: {str(e)}"}), 400
-
     if not userID:
         return jsonify({"error": "userID is required"}), 400
     
     try:
         # Query all documents with the given userID
         user_data_documents = myCollection.find({"userID": userID}, {"_id": 0})
-        
         if not user_data_documents:
             return jsonify({"error": "User not found"}), 404
         
