@@ -269,7 +269,6 @@ def get_data():
         for user_data in user_data_documents:
             if chart_type == "energy-day" and selected_date:
                 # Look through the "dailyEnergyData" in each document and check the date
-                print(user_data.get("detailedEnergyUsageData"))
                 for entry in user_data.get("detailedEnergyUsageData", []):
                     timestamp = entry.get("timestamp")
                     if timestamp:
