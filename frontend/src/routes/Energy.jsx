@@ -15,14 +15,26 @@ export default function Energy() {
   const [endDate, setEndDate] = useState(null);
   const [selectedMonth, setSelectedMonth] = useState('');
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
-  const [showCalendar, setShowCalendar] = useState(false);
+  const [showCalendar, setShowCalendar] = useState(true);
 
   useEffect(() => {
     if (!userId || !chart) return;
-    if (chart === 'energy-day' && !selectedDate) return;
-    if (chart === 'energy-week' && !startDate) return;
-    if (chart === 'energy-month' && !selectedMonth) return;
-    if (chart === 'energy-year' && !selectedYear) return;
+    if (chart === 'energy-day' && !selectedDate) {
+      setData([]);
+      return;
+    }
+    if (chart === 'energy-week' && !startDate) {
+      setData([]);
+      return;
+    }
+    if (chart === 'energy-month' && !selectedMonth) {
+      setData([]);
+      return;
+    }
+    if (chart === 'energy-year' && !selectedYear) {
+      setData([])
+      return;
+    }
 
     const fetchData = async () => {
       try {
@@ -188,15 +200,6 @@ export default function Energy() {
                   className="p-2 border w-32 rounded-md"
                 />
               </div>
-              <div>
-                <span className="mr-3 text-center items-center justify-center">End:</span>
-                <DatePicker
-                  selected={endDate}
-                  onChange={(date) => setEndDate(date)}
-                  dateFormat="yyyy-MM-dd"
-                  className="p-2 border w-32 rounded-md"
-                />
-              </div>
             </div>
           )}
 
@@ -209,7 +212,7 @@ export default function Energy() {
                 onChange={(e) => setSelectedMonth(e.target.value)}
                 className="p-2 border rounded-md"
               >
-                <option value="">Select a month</option>
+                <option value=""></option>
                 <option value="01">January</option>
                 <option value="02">February</option>
                 <option value="03">March</option>

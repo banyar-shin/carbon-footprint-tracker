@@ -120,7 +120,6 @@ const Chart = ({ chartType, data }) => {
         <Bar data={chartData} options={chartOptions} />
       ) : (
         <div className="text-center flex items-center justify-center text-3xl">
-          Error: Invalid or Insufficient Data
         </div>
       )}
     </>
