@@ -3,18 +3,31 @@ import { useAuth } from '@clerk/clerk-react'
 import Chart from './../components/Chart'
 import { Bar } from 'react-chartjs-2';
 import DatePicker from 'react-datepicker'; // Import react-datepicker
-import { FaPlus } from "react-icons/fa";
+import { FaPlus, FaCheck, FaTimes, FaLeaf, FaBus, FaPlug, FaRecycle } from "react-icons/fa";
 import { Chart as ChartJS, BarElement, CategoryScale, LinearScale, Tooltip, Legend } from 'chart.js';
 
 // Register Chart.js components
 ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
 const suggestedActions = [
-  'Use public transportation instead of driving',
-  'Eat more plant-based meals',
-  'Switch to energy-efficient appliances',
-  'Reduce single-use plastics',
+  { 
+    text: 'Use public transportation instead of driving', 
+    icon: FaBus 
+  },
+  { 
+    text: 'Eat more plant-based meals', 
+    icon: FaLeaf 
+  },
+  { 
+    text: 'Switch to energy-efficient appliances', 
+    icon: FaPlug 
+  },
+  { 
+    text: 'Reduce single-use plastics', 
+    icon: FaRecycle 
+  },
 ];
+
 
 export default function General() {
   const { userId } = useAuth();
@@ -28,6 +41,15 @@ export default function General() {
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [showCalendar, setShowCalendar] = useState(true);
   const [logistics, setLogistics] = useState([0, 0, 0, 0])
+  const [completedActions, setCompletedActions] = useState([]);
+
+  const handleActionToggle = (action) => {
+    setCompletedActions(prev => 
+      prev.includes(action) 
+        ? prev.filter(a => a !== action)
+        : [...prev, action]
+    );
+  };
 
   useEffect(() => {
     if (!userId || !chart) return;
@@ -82,7 +104,7 @@ export default function General() {
         </p>
       </div>
       {/* Top Options */}
-      <div className="relative w-full flex items-center px-6 pt-6 bg-base-200">
+      <div className="relative w-full flex items-center px-6 pt-6 bg-white">
         {/* Centered Buttons Container */}
         <div className="relative w-96 h-12 bg-base-100 rounded-lg overflow-hidden mx-auto">
           <div
@@ -125,7 +147,7 @@ export default function General() {
         {/* </div> */}
       </div>
 
-      <div className="w-full bg-base-200 flex flex-col justify-center items-center rounded-b-lg pb-6 px-6">
+      <div className="w-full bg-white flex flex-col justify-center items-center rounded-b-lg pb-6 px-6">
         <div className="py-4">
           {showCalendar && chart === 'general-week' && (
             <div className="flex space-x-4">
@@ -185,44 +207,78 @@ export default function General() {
         <Chart chartType={chart} data={data} />
       </div>
 
-      <div className="bg-base-200 rounded-lg my-3 p-6">
+      <div className="bg-white rounded-lg my-3 p-6">
         <h2 className="text-2xl font-semibold mb-6">Carbon Footprint Distribution</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+        <div className="grid grid-cols-2 gap-4 mb-4">
           <div className="stat bg-base-100 rounded-lg shadow-lg">
             <div className="stat-title">Total Footprint</div>
             <div className="stat-value">{Math.round(logistics[3])} kg CO2</div>
           </div>
           <div className="stat bg-base-100 rounded-lg shadow-lg">
             <div className="stat-title">Energy</div>
-            <div className="stat-value">{Math.round(logistics[0] / logistics[3] * 100)} %</div>
+            <div className="stat-value" style={{ color: '#ffc658' }}>{Math.round(logistics[0] / logistics[3] * 100)} %</div>
           </div>
           <div className="stat bg-base-100 rounded-lg shadow-lg">
             <div className="stat-title">Transport</div>
-            <div className="stat-value">{Math.round(logistics[1] / logistics[3] * 100)} %</div>
+            <div className="stat-value" style={{ color: '#8884d8' }}>{Math.round(logistics[1] / logistics[3] * 100)} %</div>
           </div>
           <div className="stat bg-base-100 rounded-lg shadow-lg">
             <div className="stat-title">Food</div>
-            <div className="stat-value">{Math.round(logistics[2] / logistics[3] * 100)} %</div>
+            <div className="stat-value" style={{ color: '#82ca9d' }}>{Math.round(logistics[2] / logistics[3] * 100)} %</div>
           </div>
         </div>
       </div>
 
-      <div className="p-6 bg-base-200 rounded-lg">
-        <h2 className="text-2xl font-semibold mb-6">Suggested Actions</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {suggestedActions.map((action, index) => (
-            <div key={index} className="card bg-base-100 shadow-lg">
-              <div className="card-body">
-                <p>{action}</p>
-                <div className="card-actions justify-end">
-                  <button className="btn btn-circle btn-sm btn-success" onClick={() => handleActionCheck(action)}>
-                    ✓
+      <div className="p-6 bg-base-white rounded-lg">
+        <h2 className="text-2xl font-semibold mb-6 text-center text-gray-800">Recommended Sustainability Actions</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {suggestedActions.map((action, index) => {
+            const Icon = action.icon;
+            const isCompleted = completedActions.includes(action.text);
+            
+            return (
+              <div 
+                key={index} 
+                className={`
+                  flex items-center p-4 rounded-lg transition-all duration-300 
+                  ${isCompleted 
+                    ? 'bg-green-100 border-2 border-green-300' 
+                    : 'bg-gray-100 hover:bg-gray-200'
+                  }
+                `}
+              >
+                <div className="flex-grow flex items-center space-x-4">
+                  <Icon 
+                    className={`
+                      text-2xl 
+                      ${isCompleted ? 'text-green-600' : 'text-gray-600'}
+                    `} 
+                  />
+                  <span 
+                    className={`
+                      ${isCompleted ? 'line-through text-gray-500' : 'text-gray-800'}
+                    `}
+                  >
+                    {action.text}
+                  </span>
+                </div>
+                <div className="flex space-x-2">
+                  <button 
+                    onClick={() => handleActionToggle(action.text)}
+                    className={`
+                      p-2 rounded-full transition-colors 
+                      ${isCompleted 
+                        ? 'bg-green-500 text-white' 
+                        : 'bg-green-200 text-green-700 hover:bg-green-300'
+                      }
+                    `}
+                  >
+                    <FaCheck />
                   </button>
-                  <button className="btn btn-circle btn-sm btn-error">✕</button>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </div>
