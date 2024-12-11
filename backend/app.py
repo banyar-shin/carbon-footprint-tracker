@@ -223,14 +223,13 @@ def calculate_footprint():
 
     footprint_data = {
         "userID": userID,
-        "DietryData": {
+        "dietryData": {
             "weekly": weekly_carbon_diet,
             "monthly": monthly_carbon_diet,
             "annually": annually_carbon_diet,
         }
     }
 
-    print("users ID at bottom", userID)
 
     # Insert or update the MongoDB document
     myCollection.update_one({"userID": userID}, {"$set": footprint_data}, upsert=True)
