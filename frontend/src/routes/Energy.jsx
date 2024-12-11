@@ -6,13 +6,13 @@ import "react-datepicker/dist/react-datepicker.css"; // Import the CSS
 import { FaPlus } from "react-icons/fa";
 
 export default function Energy() {
+  const { userId } = useAuth();
   const [chart, setChart] = useState('energy-week');
   const [data, setData] = useState([]);
-  const { userId } = useAuth();
   const options = ['energy-day', 'energy-week', 'energy-month', 'energy-year'];
-  const [selectedDate, setSelectedDate] = useState(null);
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
+  const [selectedDate, setSelectedDate] = useState(null);
   const [selectedMonth, setSelectedMonth] = useState('');
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [showCalendar, setShowCalendar] = useState(true);
@@ -58,7 +58,8 @@ export default function Energy() {
   const handleUpload = async (event) => {
     event.preventDefault();
 
-    const file = event.target.files[0];
+    const fileInput = event.target.querySelector('input[type="file"]');
+    const file = fileInput.files[0];
 
     if (!file) {
       alert('Please select a file to upload');
@@ -72,12 +73,12 @@ export default function Energy() {
 
     try {
       if (!userId) {
-        throw new Error('Upload failed: Invalid UserID');
+        throw new Error('Upload failed: Invalid UserID')
       }
 
       const formData = new FormData();
       formData.append('file', file);
-      formData.append('userID', userId);
+      formData.append('userID', userId)
 
       const response = await fetch("http://localhost:5001/upload", {
         method: 'POST',
@@ -90,6 +91,9 @@ export default function Energy() {
 
       const data = await response.json();
       console.log('Upload successful:', data);
+
+      fileInput.value = '';
+      document.getElementById('upload_csv_modal').close();
 
       alert('File uploaded successfully!');
 
@@ -113,7 +117,7 @@ export default function Energy() {
     <div className="h-full overflow-y-auto p-4 items-center text-center text-base-content" >
       {/* Banner */}
       <div className="w-full bg-gradient-to-r from-primary via-secondary to-primary text-white text-center py-6 rounded-t-lg">
-        <h1 className="text-4xl font-bold border-b-2 border-white pb-2 w-1/2 mx-auto">
+        <h1 className="text-4xl font-bold border-b-2 border-white pb-2 w-2/3 mx-auto">
           Energy Usage 📊
         </h1>
         <p className="text-lg mt-2">
@@ -124,7 +128,7 @@ export default function Energy() {
       {/* Top Options */}
       <div className="relative w-full flex items-center px-6 pt-6 bg-base-200">
         {/* Centered Buttons Container */}
-        <div className="relative w-1/2 h-12 bg-base-100 rounded-lg overflow-hidden mx-auto">
+        <div className="relative w-96 h-12 bg-base-100 rounded-lg overflow-hidden mx-auto">
           <div
             className="absolute top-[4px] bottom-[4px] h-[calc(100%-8px)] bg-primary rounded-md transition-transform duration-300"
             style={{
@@ -161,16 +165,9 @@ export default function Energy() {
 
         {/* Upload Button on Far Right */}
         <div className="absolute right-0 top-0 h-full flex items-center pt-6 pr-6 bg-base-200">
-          <label htmlFor="file-upload" className="btn btn-circle btn-primary">
+          <button className="btn btn-circle btn-primary" onClick={() => document.getElementById('upload_csv_modal').showModal()}>
             <FaPlus />
-          </label>
-          <input
-            id="file-upload"
-            type="file"
-            className="hidden"
-            onChange={handleUpload}
-            accept=".csv"
-          />
+          </button>
         </div>
       </div>
 
@@ -192,7 +189,7 @@ export default function Energy() {
           {showCalendar && chart === 'energy-week' && (
             <div className="flex space-x-4">
               <div>
-                <span className="mr-3 text-center items-center justify-center">Start:</span>
+                <span className="mr-2 text-center items-center justify-center">Date:</span>
                 <DatePicker
                   selected={startDate}
                   onChange={(date) => setStartDate(date)}
@@ -246,6 +243,31 @@ export default function Energy() {
         {/* Chart */}
         <Chart chartType={chart} data={data} />
       </div>
+
+      <dialog id="upload_csv_modal" className="modal">
+        <div className="modal-box w-[32rem] max-w-xl bg-base-200">
+          <form method="dialog">
+            <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+          </form>
+          <h3 className="font-bold w-full text-xl py-3">Upload PG&E Data</h3>
+          <form onSubmit={handleUpload} className="w-full space-y-4">
+            <div className="form-group flex items-center justify-center">
+              <label className="form-control max-w-xs">
+                <div className="label">
+                  <span className="font-medium">Select a file:</span>
+                </div>
+                <input type="file" accept=".csv" className="file-input file-input-bordered max-w-xs" />
+              </label>
+            </div>
+            <div className="divider" />
+            <div className="w-full px-24">
+              <button type="submit" className="btn btn-primary btn-wide">
+                Upload
+              </button>
+            </div>
+          </form>
+        </div>
+      </dialog>
     </div>
   );
 }
