@@ -2,12 +2,96 @@ import { useState } from 'react'
 import { useAuth } from '@clerk/clerk-react'
 import Chart from './../components/Chart'
 import { useNavigate } from 'react-router-dom'
+import { Bar } from 'react-chartjs-2';
+import { Chart as ChartJS, BarElement, CategoryScale, LinearScale, Tooltip, Legend } from 'chart.js';
+
+// Register Chart.js components
+ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
+
+const weeklyData = {
+  labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+  datasets: [
+    {
+      label: 'Transport',
+      data: [4, 3, 2, 5, 3, 4, 2],
+      backgroundColor: '#8884d8',
+    },
+    {
+      label: 'Food',
+      data: [3, 4, 3, 2, 5, 3, 4],
+      backgroundColor: '#82ca9d',
+    },
+    {
+      label: 'Energy',
+      data: [2, 1, 4, 3, 1, 2, 3],
+      backgroundColor: '#ffc658',
+    },
+    {
+      label: 'Other',
+      data: [1, 2, 1, 2, 3, 4, 1],
+      backgroundColor: '#ff8042',
+    },
+  ],
+};
+
+const options = {
+  responsive: true,
+  plugins: {
+    legend: {
+      position: 'top',
+    },
+    tooltip: {
+      callbacks: {
+        label: function (tooltipItem) {
+          return `${tooltipItem.dataset.label}: ${tooltipItem.raw} kg CO2`;
+        },
+      },
+    },
+  },
+  scales: {
+    x: {
+      stacked: true,
+    },
+    y: {
+      stacked: true,
+    },
+  },
+};
+
+const distribution = [
+  { category: 'Transport', percentage: 35 },
+  { category: 'Food', percentage: 30 },
+  { category: 'Energy', percentage: 25 },
+  { category: 'Other', percentage: 10 },
+];
+
+const suggestedActions = [
+  'Use public transportation instead of driving',
+  'Eat more plant-based meals',
+  'Switch to energy-efficient appliances',
+  'Reduce single-use plastics',
+];
+
 
 export default function General() {
   const navigate = useNavigate();
   const { userId } = useAuth();
   const [chart, setChart] = useState('general-week')
   const [vehicleDataExists, setVehicleDataExists] = useState(false);
+  const [viewOption, setViewOption] = useState('week');
+  const [goal, setGoal] = useState(20);
+  const [energyData, setEnergyData] = useState([]);
+
+  const handleAddGoal = () => {
+    const newGoal = prompt('Enter your carbon footprint goal (in kg CO2):');
+    if (newGoal && !isNaN(newGoal)) {
+      setGoal(Number(newGoal));
+    }
+  };
+
+  const handleActionCheck = (action) => {
+    console.log(`Added to to-do list: ${action}`);
+  };
 
   const checkVehicleData = async () => {
     if (!userId) return;
@@ -68,154 +152,87 @@ export default function General() {
     }
   }
 
-  const handleUpload = async (event) => {
-    event.preventDefault();
-
-    const fileInput = event.target.querySelector('input[type="file"]');
-    const file = fileInput.files[0];
-
-    if (!file) {
-      alert('Please select a file to upload');
-      return;
-    }
-
-    if (!file.name.endsWith('.csv')) {
-      alert('Please upload a CSV file');
-      return;
-    }
-
-    try {
-      if (!userId) {
-        throw new Error('Upload failed: Invalid UserID')
-      }
-
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('userID', userId)
-
-      const response = await fetch("http://localhost:5001/upload", {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (!response.ok) {
-        throw new Error(`Upload failed: ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      console.log('Upload successful:', data);
-
-      fileInput.value = '';
-      document.getElementById('upload_csv_modal').close();
-
-      alert('File uploaded successfully!');
-
-    } catch (error) {
-      console.error('Error uploading file:', error);
-      alert('Failed to upload file. Please try again.');
-    }
-  };
-
   return (
-    <div className="h-full overflow-y-auto p-4 items-center text-center text-base-content space-y-4" >
-      <div className="p-6 bg-base-200 rounded-lg grid grid-cols-2 gap-6 justify-center">
-        <button className="btn btn-secondary w-full" onClick={() => document.getElementById('upload_csv_modal').showModal()} >
-          Upload PG&E File
+    <div className="p-4 bg-base-200 min-h-screen">
+      <h1 className="text-3xl font-bold mb-4">Carbon Footprint Dashboard</h1>
+
+      <div className="flex mb-4">
+        <div className="btn-group">
+          {['day', 'week', 'month', 'year'].map((option) => (
+            <button
+              key={option}
+              className={`btn btn-sm ${viewOption === option ? 'btn-active' : ''}`}
+              onClick={() => setViewOption(option)}
+            >
+              {option.charAt(0).toUpperCase() + option.slice(1)}
+            </button>
+          ))}
+        </div>
+        <button className="btn btn-primary btn-sm ml-4" onClick={handleAddGoal}>
+          Set Goal
         </button>
-        <button className="btn btn-secondary w-full" onClick={checkVehicleData} >
-          Add Today's Transportation Data
-        </button>
       </div>
 
-      <div className="w-full p-6 rounded-lg bg-base-200 space-y-6">
-        <Chart chart={chart} setChart={setChart} />
-        <div className="grid grid-cols-3 justify-center w-full gap-4">
-          <button
-            className={`btn btn-secondary ${chart === 'general-week' ? 'text-white border border-white btn-active' : ''}`}
-            onClick={() => setChart('general-week')}
-          >
-            Weekly
-          </button>
-          <button
-            className={`btn btn-secondary ${chart === 'general-month' ? 'text-white border border-white btn-active' : ''}`}
-            onClick={() => setChart('general-month')}
-          >
-            Monthly
-          </button>
-          <button
-            className={`btn btn-secondary ${chart === 'general-year' ? 'text-white border border-white btn-active' : ''}`}
-            onClick={() => setChart('general-year')}
-          >
-            Yearly
-          </button>
+      <div className="flex flex-wrap -mx-2">
+        <div className="w-full lg:w-3/4 px-2 mb-4">
+          <div className="bg-base-100 rounded-box p-4 shadow-lg">
+            <Bar data={weeklyData} options={options} />
+          </div>
         </div>
-      </div>
 
-      <div className="bg-base-200 p-8 rounded-lg">
-        <h3 className='text-lg text-left font-semibold'>Today's Carbon Footprint</h3>
-        <p className='text-md text-left'>Value</p>
-        <div className='divider' />
-        <h3 className='text-lg text-left font-semibold'>Average Weekly Carbon Footprint</h3>
-        <p className='text-md text-left'>Value</p>
-        <div className='divider' />
-        <h3 className='text-lg text-left font-semibold'>Average Monthly Carbon Footprint</h3>
-        <p className='text-md text-left'>Value</p>
-        <div className='divider' />
-        <h3 className='text-lg text-left font-semibold'>Average Annual Carbon Footprint</h3>
-        <p className='text-md text-left'>Value</p>
-      </div>
-
-      <dialog id="upload_csv_modal" className="modal">
-        <div className="modal-box w-[32rem] max-w-xl">
-          <form method="dialog">
-            <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
-          </form>
-          <h3 className="font-bold w-full text-xl py-6">Upload PG&E File</h3>
-          <form onSubmit={handleUpload} className='w-full flex flex-col px-6 py-12 rounded-xl bg-base-200 justify-center items-center'>
-            <label className="form-control flex w-full max-w-xs">
-              <div className="label">
-                <span className="label-text font-semibold">Pick a file</span>
+        <div className="w-full lg:w-1/4 px-2 mb-4">
+          <div className="bg-base-100 rounded-box p-4 shadow-lg">
+            <h2 className="text-xl font-semibold mb-2">Carbon Footprint Distribution</h2>
+            {distribution.map((item) => (
+              <div key={item.category} className="flex justify-between mb-2">
+                <span>{item.category}</span>
+                <span>{item.percentage}%</span>
               </div>
-              <input type="file" accept=".csv" className="file-input file-input-bordered max-w-xs" />
-            </label>
-            <div className='divider' />
-            <div className='w-full px-24'>
-              <button type="submit" className="btn btn-primary w-full">
-                Upload File
-              </button>
+            ))}
+            <div className="mt-4">
+              <h3 className="text-lg font-semibold">Your Goal</h3>
+              <p className="text-2xl font-bold">{goal} kg CO2</p>
             </div>
-          </form>
+          </div>
         </div>
-      </dialog>
+      </div>
 
-      <dialog id="add_data_modal" className="modal">
-        <div className="modal-box w-[48rem] max-w-5xl">
-          <form method="dialog">
-            <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
-          </form>
-          <h3 className="font-bold w-full text-xl py-6">Add Today's Data</h3>
-          <form onSubmit={handleDailyForm} className="w-full flex flex-col px-6 py-12 rounded-xl bg-base-200 justify-center items-center">
-            <label className="form-control w-full max-w-xs">
-              <div className="label">
-                <span className="label-text font-semibold">Miles Driven</span>
-              </div>
-              <input type="number" name="miles_driven" className="input input-bordered max-w-xs" />
-            </label>
-            <label className="form-control w-full max-w-xs">
-              <div className="label">
-                <span className="label-text font-semibold">Carpool Count</span>
-              </div>
-              <input type="number" name="carpool" className="input input-bordered max-w-xs" required />
-            </label>
-            <div className="divider" />
-            <div className="w-full px-24">
-              <button type="submit" className="btn btn-primary w-full">
-                Submit
-              </button>
-            </div>
-          </form>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+        <div className="stat bg-base-100 rounded-box shadow-lg">
+          <div className="stat-title">Today's Footprint</div>
+          <div className="stat-value">12 kg CO2</div>
         </div>
-      </dialog>
+        <div className="stat bg-base-100 rounded-box shadow-lg">
+          <div className="stat-title">Weekly Average</div>
+          <div className="stat-value">85 kg CO2</div>
+        </div>
+        <div className="stat bg-base-100 rounded-box shadow-lg">
+          <div className="stat-title">Monthly Average</div>
+          <div className="stat-value">340 kg CO2</div>
+        </div>
+        <div className="stat bg-base-100 rounded-box shadow-lg">
+          <div className="stat-title">Annual Average</div>
+          <div className="stat-value">4,080 kg CO2</div>
+        </div>
+      </div>
+
+      <h2 className="text-2xl font-semibold mb-4">Suggested Actions</h2>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {suggestedActions.map((action, index) => (
+          <div key={index} className="card bg-base-100 shadow-lg">
+            <div className="card-body">
+              <p>{action}</p>
+              <div className="card-actions justify-end">
+                <button className="btn btn-circle btn-sm btn-success" onClick={() => handleActionCheck(action)}>
+                  ✓
+                </button>
+                <button className="btn btn-circle btn-sm btn-error">✕</button>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
+
 }

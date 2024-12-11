@@ -93,8 +93,8 @@ const Chart = ({ chartType, data }) => {
           // TODO for includes transportation
           label: chartType.includes('energy') ? 'Carbon Footprint (kg CO2)' : 'Energy (kWh)',
           data: plot_data,
-          backgroundColor: 'rgba(75, 192, 192, 0.5)',
-          borderColor: 'rgba(75, 192, 192, 1)',
+          backgroundColor: '#8884d8',
+          borderColor: '#8884d8',
           borderWidth: 2,
         },
       ],
