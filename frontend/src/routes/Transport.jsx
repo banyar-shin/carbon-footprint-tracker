@@ -72,11 +72,10 @@ export default function Transportation() {
 
       const data = await response.json();
       if (data.success == true) {
-        setVehicleDataExists(true);
         document.getElementById('add_data_modal').showModal();
       } else {
         alert("You need to configure your transportation settings first.");
-        navigate("/dashboard/transport");
+        document.getElementById('settings').showModal();
       }
     } catch (error) {
       console.error("Error checking vehicle data:", error);
@@ -203,7 +202,7 @@ export default function Transportation() {
 
         {/* Upload Button on far right */}
         <div className="absolute right-0 top-0 h-full flex items-center pt-6 pr-6 bg-base-200">
-          <button className="btn btn-circle btn-primary" onClick={() => document.getElementById('add_data_modal').showModal()}>
+          <button className="btn btn-circle btn-primary" onClick={checkVehicleData}>
             <FaPlus />
           </button>
         </div>
