@@ -9,70 +9,12 @@ import { Chart as ChartJS, BarElement, CategoryScale, LinearScale, Tooltip, Lege
 // Register Chart.js components
 ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
-const weeklyData = {
-  labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-  datasets: [
-    {
-      label: 'Transport',
-      data: [4, 3, 2, 5, 3, 4, 2],
-      backgroundColor: '#8884d8',
-    },
-    {
-      label: 'Food',
-      data: [3, 4, 3, 2, 5, 3, 4],
-      backgroundColor: '#82ca9d',
-    },
-    {
-      label: 'Energy',
-      data: [2, 1, 4, 3, 1, 2, 3],
-      backgroundColor: '#ffc658',
-    },
-    {
-      label: 'Other',
-      data: [1, 2, 1, 2, 3, 4, 1],
-      backgroundColor: '#ff8042',
-    },
-  ],
-};
-
-const stackedOptions = {
-  responsive: true,
-  plugins: {
-    legend: {
-      position: 'top',
-    },
-    tooltip: {
-      callbacks: {
-        label: function (tooltipItem) {
-          return `${tooltipItem.dataset.label}: ${tooltipItem.raw} kg CO2`;
-        },
-      },
-    },
-  },
-  scales: {
-    x: {
-      stacked: true,
-    },
-    y: {
-      stacked: true,
-    },
-  },
-};
-
-const distribution = [
-  { category: 'Transport', percentage: 35 },
-  { category: 'Food', percentage: 30 },
-  { category: 'Energy', percentage: 25 },
-  { category: 'Other', percentage: 10 },
-];
-
 const suggestedActions = [
   'Use public transportation instead of driving',
   'Eat more plant-based meals',
   'Switch to energy-efficient appliances',
   'Reduce single-use plastics',
 ];
-
 
 export default function General() {
   const { userId } = useAuth();
@@ -85,6 +27,7 @@ export default function General() {
   const [selectedMonth, setSelectedMonth] = useState('');
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [showCalendar, setShowCalendar] = useState(true);
+  const [logistics, setLogistics] = useState([0, 0, 0, 0])
 
   useEffect(() => {
     if (!userId || !chart) return;
@@ -110,6 +53,8 @@ export default function General() {
           throw new Error(`Error fetching data: ${response.statusText}`);
         }
         const result = await response.json();
+        console.log(result[3])
+        setLogistics(result[3])
         setData(result); // Update the state with fetched data
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -241,31 +186,24 @@ export default function General() {
       </div>
 
       <div className="bg-base-200 rounded-lg my-3 p-6">
-        <h2 className="text-xl font-semibold mb-2">Carbon Footprint Distribution</h2>
-        {distribution.map((item) => (
-          <div key={item.category} className="flex justify-between mb-2">
-            <span>{item.category}</span>
-            <span>{item.percentage}%</span>
+        <h2 className="text-2xl font-semibold mb-6">Carbon Footprint Distribution</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+          <div className="stat bg-base-100 rounded-lg shadow-lg">
+            <div className="stat-title">Total Footprint</div>
+            <div className="stat-value">{Math.round(logistics[3])} kg CO2</div>
           </div>
-        ))}
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-        <div className="stat bg-base-200 rounded-lg">
-          <div className="stat-title">Today's Footprint</div>
-          <div className="stat-value">12 kg CO2</div>
-        </div>
-        <div className="stat bg-base-200 rounded-lg">
-          <div className="stat-title">Weekly Average</div>
-          <div className="stat-value">85 kg CO2</div>
-        </div>
-        <div className="stat bg-base-200 rounded-lg">
-          <div className="stat-title">Monthly Average</div>
-          <div className="stat-value">340 kg CO2</div>
-        </div>
-        <div className="stat bg-base-200 rounded-lg">
-          <div className="stat-title">Annual Average</div>
-          <div className="stat-value">4,080 kg CO2</div>
+          <div className="stat bg-base-100 rounded-lg shadow-lg">
+            <div className="stat-title">Energy</div>
+            <div className="stat-value">{Math.round(logistics[0] / logistics[3] * 100)} %</div>
+          </div>
+          <div className="stat bg-base-100 rounded-lg shadow-lg">
+            <div className="stat-title">Transport</div>
+            <div className="stat-value">{Math.round(logistics[1] / logistics[3] * 100)} %</div>
+          </div>
+          <div className="stat bg-base-100 rounded-lg shadow-lg">
+            <div className="stat-title">Food</div>
+            <div className="stat-value">{Math.round(logistics[2] / logistics[3] * 100)} %</div>
+          </div>
         </div>
       </div>
 

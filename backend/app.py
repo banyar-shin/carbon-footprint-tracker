@@ -556,6 +556,7 @@ def get_dashboard_data():
             energy_arr = []
             transport_arr = []
             diet = []
+            logistics = [0, 0, 0, 0]
             # Now filter for data within this week range
             for user_data in user_data_documents:
                 energy = user_data.get("dailyEnergyData", [])
@@ -563,18 +564,23 @@ def get_dashboard_data():
                     date = entry.get("date")
                     if date:
                         if start_of_week_str <= date <= end_of_week_str:
+                            logistics[0] += entry["carbon_footprint"]
                             energy_arr.append(entry)
                 transport = user_data.get("transportationData", [])
                 for entry in transport:
                     date = entry.get("date")
                     if date:
                         if start_of_week_str <= date <= end_of_week_str:
+                            logistics[1] += entry["carbon_footprint"]
                             transport_arr.append(entry)
                 diet = user_data.get("dietryData", [])
+                logistics[2] += diet["weekly"]
+                logistics[3] = logistics[0] + logistics[1] + logistics[2]
 
             filtered_data.append(energy_arr)
             filtered_data.append(transport_arr)
             filtered_data.append(diet)
+            filtered_data.append(logistics)
 
             if filtered_data:
                 print("TEST", filtered_data)
@@ -589,6 +595,7 @@ def get_dashboard_data():
             energy_arr = []
             transport_arr = []
             diet = []
+            logistics = [0, 0, 0, 0]
             # Loop through the documents
             for user_data in user_data_documents:
                 energy = user_data.get(
@@ -602,6 +609,7 @@ def get_dashboard_data():
                         if entry_date_obj.month == int(
                             month
                         ) and entry_date_obj.year == int(year):
+                            logistics[0] += entry["carbon_footprint"]
                             energy_arr.append(entry)
                 transport = user_data.get(
                     "transportationData", []
@@ -614,14 +622,18 @@ def get_dashboard_data():
                         if entry_date_obj.month == int(
                             month
                         ) and entry_date_obj.year == int(year):
+                            logistics[1] += entry["carbon_footprint"]
                             transport_arr.append(entry)
                 diet = user_data.get(
                     "dietryData", []
                 )  # Get the dailyEnergyData from each document
+                logistics[2] += diet["monthly"]
+                logistics[3] = logistics[0] + logistics[1] + logistics[2]
 
             filtered_month_data.append(energy_arr)
             filtered_month_data.append(transport_arr)
             filtered_month_data.append(diet)
+            filtered_month_data.append(logistics)
 
             if filtered_month_data:
                 return jsonify(filtered_month_data), 200
@@ -635,6 +647,7 @@ def get_dashboard_data():
             energy_arr = []
             transport = []
             diet = []
+            logistics = [0, 0, 0, 0]
             # Loop through the documents
             for user_data in user_data_documents:
                 energy = user_data.get(
@@ -646,17 +659,22 @@ def get_dashboard_data():
                         # Check if the date matches the given year
                         entry_date_obj = datetime.strptime(date, "%Y-%m")
                         if entry_date_obj.year == int(year):
+                            logistics[0] += entry["carbon_footprint"]
                             energy_arr.append(entry)
                 transport = user_data.get(
                     "vehicleData", []
                 )  # Get the dailyEnergyData from each document
+                logistics[1] += transport["avg_miles"]
                 diet = user_data.get(
                     "dietryData", []
                 )  # Get the dailyEnergyData from each document
+                logistics[2] += diet["monthly"]
+                logistics[3] = logistics[0] + logistics[1] + logistics[2]
 
             filtered_year_data.append(energy_arr)
             filtered_year_data.append(transport)
             filtered_year_data.append(diet)
+            filtered_year_data.append(logistics)
 
             if filtered_year_data:
                 print(filtered_year_data)
