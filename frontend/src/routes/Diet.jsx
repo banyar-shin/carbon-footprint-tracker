@@ -378,7 +378,7 @@ function ResultsPage({ carbonFootprintData }) {
       <div className="flex gap-10 mt-10 relative">
         {/* Left Card */}
         <div
-          className="flex-1 bg-neutral-content shadow-lg rounded-lg p-4 text-center"
+          className="flex-1 bg-white shadow-lg rounded-lg p-4 text-center"
           style={{
             boxShadow: "-5px 5px 10px rgba(0, 0, 0, 0.2)",
             transform: "translateY(10px)", 
@@ -390,7 +390,7 @@ function ResultsPage({ carbonFootprintData }) {
 
         {/* Middle Card */}
         <div
-          className="flex-[2] bg-neutral-content shadow-xl rounded-lg p-4 text-center relative"
+          className="flex-[2] bg-white shadow-xl rounded-lg p-4 text-center relative"
           style={{
             transform: "scale(1.2)", 
             zIndex: 1, 
@@ -403,7 +403,7 @@ function ResultsPage({ carbonFootprintData }) {
 
         {/* Right Card */}
         <div
-          className="flex-1 bg-neutral-content shadow-lg rounded-lg p-4 text-center"
+          className="flex-1 bg-white shadow-lg rounded-lg p-4 text-center"
           style={{
             boxShadow: "5px 5px 10px rgba(0, 0, 0, 0.2)",
             transform: "translateY(10px)", 
@@ -417,10 +417,10 @@ function ResultsPage({ carbonFootprintData }) {
       {/* Nutrition Analysis and Food Recommendations */}
       <div className="flex gap-4 mt-10">
         {/* Nutrition Analysis */}
-        <div className="flex-1 bg-neutral-content shadow-lg rounded-lg p-4">
+        <div className="flex-1 bg-white shadow-lg rounded-lg p-4">
           <h2 className="text-xl font-bold shadow-lg">Nutrition Analysis</h2>
           <div
-            className={`bg-neutral-content p-2 rounded mt-2 overflow-hidden transition-all duration-300`}
+            className={`bg-white p-2 rounded mt-2 overflow-hidden transition-all duration-300`}
             style={{
               maxHeight: isExpandedNutrition ? "none" : "150px",
             }}
@@ -471,10 +471,10 @@ function ResultsPage({ carbonFootprintData }) {
         </div>
 
         {/* Food Recommendations */}
-        <div className="flex-1 bg-neutral-content shadow-lg rounded-lg p-4">
+        <div className="flex-1 bg-white shadow-lg rounded-lg p-4">
           <h2 className="text-xl font-bold shadow-lg">Food Recommendations</h2>
           <div
-            className={`bg-neutral-content p-2 rounded mt-2 overflow-hidden transition-all duration-300`}
+            className={`bg-white p-2 rounded mt-2 overflow-hidden transition-all duration-300`}
             style={{
               maxHeight: isExpandedRecommendations ? "none" : "150px",
             }}
