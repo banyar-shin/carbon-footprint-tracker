@@ -11,9 +11,14 @@
   },
   "dependencies": {
     "@clerk/clerk-react": "^5.14.0",
+    "@mui/material": "^6.1.10",
+    "@mui/x-date-pickers": "^7.23.1",
     "chart.js": "^4.4.7",
+    "dayjs": "^1.11.13",
+    "lucide-react": "^0.468.0",
     "react": "^18.3.1",
     "react-chartjs-2": "^5.2.0",
+    "react-datepicker": "^7.5.0",
     "react-dom": "^18.3.1",
     "react-icons": "^5.3.0",
     "react-router-dom": "^6.26.2"
