@@ -18,7 +18,11 @@ export default function Energy() {
   const [showCalendar, setShowCalendar] = useState(false);
 
   useEffect(() => {
-    if (!userId) return;
+    if (!userId || !chart) return;
+    if (chart === 'energy-day' && !selectedDate) return;
+    if (chart === 'energy-week' && !startDate) return;
+    if (chart === 'energy-month' && !selectedMonth) return;
+    if (chart === 'energy-year' && !selectedYear) return;
 
     const fetchData = async () => {
       try {

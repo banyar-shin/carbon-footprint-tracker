@@ -17,6 +17,13 @@ const Chart = ({ chartType, data }) => {
   const [chartData, setChartData] = useState(null);
   const [chartOptions, setChartOptions] = useState(null);
 
+  // Function to format the date to a more readable format, e.g., "July 1, 2024"
+  const formatDate = (dateStr) => {
+    const date = new Date(dateStr);
+    const options = { year: 'numeric', month: 'long', day: 'numeric' };
+    return date.toLocaleDateString('en-US', options); // Formats to 'Month day, year'
+  };
+
   useEffect(() => {
     console.log("Chart Type:", chartType);
     console.log("Data Received:", data);
@@ -39,7 +46,7 @@ const Chart = ({ chartType, data }) => {
         title = 'Detailed Daily Carbon Footprint';
         break;
       case 'energy-week':
-        labels = data.map((entry) => entry.date);
+        labels = data.map((entry) => formatDate(entry.date));
         plot_data = data.map((entry) => entry.carbon_footprint);
         title = 'Daily Carbon Footprint Summary';
         break;
@@ -50,7 +57,7 @@ const Chart = ({ chartType, data }) => {
         break;
       case 'energy-year':
         labels = data.map((entry) => entry.date);
-        plot_data = data.map((entry) => entry.net_energy_kwh);
+        plot_data = data.map((entry) => entry.carbon_footprint);
         title = 'Yearly Carbon Footprint Summary';
         break;
       case 'transportation-week':
