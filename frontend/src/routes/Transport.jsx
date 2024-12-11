@@ -34,7 +34,7 @@ export default function Transportation() {
     const fetchData = async () => {
       try {
         const response = await fetch(
-          `http://localhost:5001/data?userID=${userId}&chartType=${chart}&startDate=${startDate}&endDate=${endDate}&month=${selectedMonth}&year=${selectedYear}`
+          `http://localhost:5001/transData?userID=${userId}&chartType=${chart}&startDate=${startDate}&endDate=${endDate}&month=${selectedMonth}&year=${selectedYear}`
         );
 
         if (!response.ok) {

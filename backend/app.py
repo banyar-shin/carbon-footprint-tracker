@@ -241,7 +241,7 @@ def calculate_footprint():
             "foodRecommendations": food_recommendations,
         }
     )
-'''
+
 @app.route("/data", methods=["GET"])
 def get_data():
     userID = request.args.get("userID")
@@ -310,11 +310,10 @@ def get_data():
         return jsonify({"error": f"Failed to get data: {str(e)}"}), 500
 
 
-'''
-@app.route("/data", methods=["GET"])
-def get_data():
+
+@app.route("/transData", methods=["GET"])
+def get_trans_data():
     userID = request.args.get("userID")
-    selected_date = request.args.get("selectedDate")
     chart_type = request.args.get("chartType")
     start_date = request.args.get("startDate")  # The date to filter on
     end_date = request.args.get("endDate")  # For other types like week/month/year, if needed
