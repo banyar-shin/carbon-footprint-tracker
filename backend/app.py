@@ -200,7 +200,7 @@ def uploadCSV():
 
 
 @app.route("/calculate_diet", methods=["POST"])
-def calculate_footprint(): 
+def calculate_footprint():
     userID = request.args.get("userID")
     # Ask user for MONTHLY INPUT of food intake
     data = request.get_json()
@@ -232,14 +232,11 @@ def calculate_footprint():
             "weekly": weekly_carbon_diet,
             "monthly": monthly_carbon_diet,
             "annually": annually_carbon_diet,
-        }
+        },
     }
-
 
     # Insert or update the MongoDB document
     myCollection.update_one({"userID": userID}, {"$set": footprint_data}, upsert=True)
-
-
 
     return jsonify(
         {
@@ -499,6 +496,176 @@ def get_trans_data():
                 return jsonify(filtered_month_data), 200
             else:
                 return jsonify({"error": "No data found for the specified month"}), 404
+
+    except Exception as e:
+        return jsonify({"error": f"Failed to get data: {str(e)}"}), 500
+
+
+@app.route("/dashboardData", methods=["GET"])
+def get_dashboard_data():
+    userID = request.args.get("userID")
+    selected_date = request.args.get("selectedDate")
+    chart_type = request.args.get("chartType")
+    start_date = request.args.get("startDate")  # The date to filter on
+    end_date = request.args.get(
+        "endDate"
+    )  # For other types like week/month/year, if needed
+    month = request.args.get("month")
+    year = request.args.get("year")
+
+    print(userID, selected_date, chart_type, start_date, end_date, month, year)
+
+    if not userID:
+        return jsonify({"error": "userID is required"}), 400
+
+    try:
+        # Query all documents with the given userID
+        user_data_documents = myCollection.find({"userID": userID}, {"_id": 0})
+
+        if not user_data_documents:
+            return jsonify({"error": "User not found"}), 404
+
+        filtered_data = []
+
+        # Handle energy-week
+        if chart_type == "general-week":
+            if start_date:
+                try:
+                    cleaned_start_date = start_date.split(" (")[
+                        0
+                    ]  # Remove everything after " ("
+                    # Parse the incoming date string
+                    start_date_obj = datetime.strptime(
+                        cleaned_start_date, "%a %b %d %Y %H:%M:%S %Z%z"
+                    )
+                    # Format the date to YYYY-MM-DD
+                    start_date = start_date_obj.strftime("%Y-%m")
+                except ValueError as e:
+                    return jsonify(
+                        {"error": f"Invalid date format for selectedDate: {str(e)}"}
+                    ), 400
+
+            # Calculate the start of the week (e.g., Monday)
+            start_of_week = start_date_obj - timedelta(days=start_date_obj.weekday())
+            end_of_week = start_of_week + timedelta(days=6)  # End of the week (Sunday)
+
+            # Format dates for query
+            start_of_week_str = start_of_week.strftime("%Y-%m-%d")
+            end_of_week_str = end_of_week.strftime("%Y-%m-%d")
+
+            energy_arr = []
+            transport_arr = []
+            diet = []
+            # Now filter for data within this week range
+            for user_data in user_data_documents:
+                energy = user_data.get("dailyEnergyData", [])
+                for entry in energy:
+                    date = entry.get("date")
+                    if date:
+                        if start_of_week_str <= date <= end_of_week_str:
+                            energy_arr.append(entry)
+                transport = user_data.get("transportationData", [])
+                for entry in transport:
+                    date = entry.get("date")
+                    if date:
+                        if start_of_week_str <= date <= end_of_week_str:
+                            transport_arr.append(entry)
+                diet = user_data.get("dietryData", [])
+
+            filtered_data.append(energy_arr)
+            filtered_data.append(transport_arr)
+            filtered_data.append(diet)
+
+            if filtered_data:
+                print("TEST", filtered_data)
+                return jsonify(filtered_data), 200
+            else:
+                return jsonify({"error": "No data found for the specified week"}), 404
+
+        # Handle energy-month
+        elif chart_type == "general-month" and month and year:
+            filtered_month_data = []
+
+            energy_arr = []
+            transport_arr = []
+            diet = []
+            # Loop through the documents
+            for user_data in user_data_documents:
+                energy = user_data.get(
+                    "dailyEnergyData", []
+                )  # Get the dailyEnergyData from each document
+                for entry in energy:
+                    date = entry.get("date")
+                    if date:
+                        # Check if the date matches the given month and year
+                        entry_date_obj = datetime.strptime(date, "%Y-%m-%d")
+                        if entry_date_obj.month == int(
+                            month
+                        ) and entry_date_obj.year == int(year):
+                            energy_arr.append(entry)
+                transport = user_data.get(
+                    "transportationData", []
+                )  # Get the dailyEnergyData from each document
+                for entry in transport:
+                    date = entry.get("date")
+                    if date:
+                        # Check if the date matches the given month and year
+                        entry_date_obj = datetime.strptime(date, "%Y-%m-%d")
+                        if entry_date_obj.month == int(
+                            month
+                        ) and entry_date_obj.year == int(year):
+                            transport_arr.append(entry)
+                diet = user_data.get(
+                    "dietryData", []
+                )  # Get the dailyEnergyData from each document
+
+            filtered_month_data.append(energy_arr)
+            filtered_month_data.append(transport_arr)
+            filtered_month_data.append(diet)
+
+            if filtered_month_data:
+                return jsonify(filtered_month_data), 200
+            else:
+                return jsonify({"error": "No data found for the specified month"}), 404
+
+        # If the chart type is for year, handle accordingly
+        elif chart_type == "general-year" and year:
+            filtered_year_data = []
+
+            energy_arr = []
+            transport = []
+            diet = []
+            # Loop through the documents
+            for user_data in user_data_documents:
+                energy = user_data.get(
+                    "monthlyEnergyData", []
+                )  # Get the dailyEnergyData from each document
+                for entry in energy:
+                    date = entry.get("date")
+                    if date:
+                        # Check if the date matches the given year
+                        entry_date_obj = datetime.strptime(date, "%Y-%m")
+                        if entry_date_obj.year == int(year):
+                            energy_arr.append(entry)
+                transport = user_data.get(
+                    "vehicleData", []
+                )  # Get the dailyEnergyData from each document
+                diet = user_data.get(
+                    "dietryData", []
+                )  # Get the dailyEnergyData from each document
+
+            filtered_year_data.append(energy_arr)
+            filtered_year_data.append(transport)
+            filtered_year_data.append(diet)
+
+            if filtered_year_data:
+                print(filtered_year_data)
+                return jsonify(filtered_year_data), 200
+            else:
+                return jsonify({"error": "No data found for the specified year"}), 404
+
+        else:
+            return jsonify({"error": "Invalid chart type"}), 400
 
     except Exception as e:
         return jsonify({"error": f"Failed to get data: {str(e)}"}), 500
