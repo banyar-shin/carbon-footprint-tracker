@@ -119,9 +119,8 @@ export default function Transportation() {
             {options.map((option, index) => (
               <button
                 key={option}
-                className={`flex-1 text-center z-10 relative font-semibold transition-colors duration-300 ${
-                  selectedIndex === index ? 'text-white' : 'text-black'
-                }`}
+                className={`flex-1 text-center z-10 relative font-semibold transition-colors duration-300 ${selectedIndex === index ? 'text-white' : 'text-black'
+                  }`}
                 onClick={() => {
                   setChart(option);
                   if (option === 'transportation-week') {
@@ -219,8 +218,7 @@ export default function Transportation() {
         <Chart chartType={chart} data={data} />
       </div>
 
-      {/* Transportation Settings Form */}
-      <div className="p-6 bg-base-200 rounded-lg gap-6 justify-center mt-6">
+      <div className="p-6 bg-base-200 rounded-lg gap-6 justify-center">
         <h1 className="text-2xl font-bold mb-4">Transportation Settings</h1>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="form-group">
@@ -287,4 +285,6 @@ export default function Transportation() {
       </div>
     </div>
   );
+
+
 }
