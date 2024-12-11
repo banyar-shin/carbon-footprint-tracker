@@ -285,6 +285,4 @@ export default function Transportation() {
       </div>
     </div>
   );
-
-
 }
