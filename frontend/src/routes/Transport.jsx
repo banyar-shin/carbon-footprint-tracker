@@ -1,150 +1,64 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from '@clerk/clerk-react';
-import Chart from './../components/Chart'
+import Chart from './../components/Chart';
 
 export default function Transportation() {
-    const { userId } = useAuth();
-    const [chart, setChart] = useState('transport-week')
-    const [formData, setFormData] = useState({
-        userID: "", // Initialize userID as empty string
-        fuel_type: "",
-        mpg: "",
-        wh_mile: "",
-        avg_miles: "",
-    });
+  const { userId } = useAuth(); // Get user ID from Clerk
+  const [chart, setChart] = useState('transport-week'); // Default chart type
+  const [data, setData] = useState([]); // Data to render in the chart
+  const options = ['transportation-week', 'transportation-month', 'transportation-year']; // Available chart options
 
-    useEffect(() => {
-        if (userId) {
-            setFormData((prevFormData) => ({
-                ...prevFormData,
-                userID: userId,
-            }));
+  // Fetch data when the selected chart changes
+  useEffect(() => {
+    if (!userId) return;
+
+    const fetchData = async () => {
+      try {
+        const response = await fetch(
+          `http://localhost:5001/data?userID=${userId}&chartType=${chart}`
+        );
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch data');
         }
-    }, [userId]);
 
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setFormData({
-            ...formData,
-            [name]: value,
-        });
+        const result = await response.json();
+        setData(result);
+      } catch (error) {
+        console.error("Error fetching transportation data:", error);
+        alert("Failed to fetch transportation data. Please try again.");
+      }
     };
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        console.log("Form Data:", formData); // Debugging
-        try {
-            const response = await fetch("http://127.0.0.1:5001/transportation", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(formData),
-            });
+    fetchData();
+  }, [chart, userId]); // Refetch whenever the user or selected chart type changes
 
-            if (!response.ok) {
-                throw new Error("Failed to update transportation information");
-            }
-
-            const result = await response.json();
-            alert("Settings saved successfully!");
-        } catch (error) {
-            console.error(error);
-            alert("Error saving settings. Please try again.");
-        }
-    };
-
-    return (
-        <div className="h-full overflow-y-auto p-4 items-center text-center text-base-content space-y-4">
-            <div className="w-full p-6 rounded-lg bg-base-200 space-y-6">
-                <Chart chart={chart} setChart={setChart} />
-                <div className="grid grid-cols-3 justify-center w-full gap-4">
-                    <button
-                        className={`btn btn-secondary ${chart === 'transport-week' ? 'text-white border border-white btn-active' : ''}`}
-                        onClick={() => setChart('transport-week')}
-                    >
-                        Weekly
-                    </button>
-                    <button
-                        className={`btn btn-secondary ${chart === 'transport-month' ? 'text-white border border-white btn-active' : ''}`}
-                        onClick={() => setChart('transport-month')}
-                    >
-                        Monthly
-                    </button>
-                    <button
-                        className={`btn btn-secondary ${chart === 'transport-year' ? 'text-white border border-white btn-active' : ''}`}
-                        onClick={() => setChart('transport-year')}
-                    >
-                        Yearly
-                    </button>
-                </div>
-            </div>
-
-            <div className="p-6 bg-base-200 rounded-lg gap-6 justify-center">
-                <h1 className="text-2xl font-bold mb-4">Transportation Settings</h1>
-                <form onSubmit={handleSubmit} className="space-y-4">
-                    <div className="form-group">
-                        <label htmlFor="fuel_type" className="block text-left mb-2 font-medium">Fuel Type:</label>
-                        <select
-                            id="fuel_type"
-                            name="fuel_type"
-                            value={formData.fuel_type}
-                            onChange={handleChange}
-                            required
-                            className="select select-bordered w-full"
-                        >
-                            <option value="">Select Fuel Type</option>
-                            <option value="Gasoline">Gasoline</option>
-                            <option value="Diesel">Diesel</option>
-                            <option value="EV">Electric Vehicle (EV)</option>
-                        </select>
-                    </div>
-
-                    {formData.fuel_type === "Gasoline" || formData.fuel_type === "Diesel" ? (
-                        <div className="form-group">
-                            <label htmlFor="mpg" className="block text-left mb-2 font-medium">Miles Per Gallon (MPG):</label>
-                            <input
-                                type="number"
-                                id="mpg"
-                                name="mpg"
-                                value={formData.mpg}
-                                onChange={handleChange}
-                                required
-                                className="input input-bordered w-full"
-                            />
-                        </div>
-                    ) : null}
-
-                    {formData.fuel_type === "EV" ? (
-                        <div className="form-group">
-                            <label htmlFor="wh_mile" className="block text-left mb-2 font-medium">Watt-Hours per Mile (Wh/Mile):</label>
-                            <input
-                                type="number"
-                                id="wh_mile"
-                                name="wh_mile"
-                                value={formData.wh_mile}
-                                onChange={handleChange}
-                                required
-                                className="input input-bordered w-full"
-                            />
-                        </div>
-                    ) : null}
-
-                    <div className="form-group">
-                        <label htmlFor="avg_miles" className="block text-left mb-2 font-medium">Average Miles Driven per Year:</label>
-                        <input
-                            type="number"
-                            id="avg_miles"
-                            name="avg_miles"
-                            value={formData.avg_miles}
-                            onChange={handleChange}
-                            className="input input-bordered w-full"
-                        />
-                    </div>
-
-                    <button type="submit" className="btn btn-primary w-full">Save Settings</button>
-                </form>
-            </div>
+  return (
+    <div className="h-full overflow-y-auto p-4 items-center text-center text-base-content space-y-4">
+      
+      {/* Banner Section */}
+      <div className="w-full p-6 rounded-lg bg-base-200 space-y-6">
+        <h1 className="text-2xl font-bold mb-4">Transportation 📊</h1>
+        
+        {/* Chart Options (Buttons to switch chart type) */}
+        <div className="grid grid-cols-3 justify-center w-full gap-4">
+          {options.map((option) => (
+            <button
+              key={option}
+              className={`btn btn-secondary ${chart === option ? 'text-white border border-white btn-active' : ''}`}
+              onClick={() => setChart(option)}
+            >
+              {option.split('-')[1].charAt(0).toUpperCase() + option.split('-')[1].slice(1)}
+            </button>
+          ))}
         </div>
-    );
+      </div>
+
+      {/* Visualization Chart Section */}
+      <div className="w-full h-[60vh] flex justify-center items-center rounded-lg mt-4 border-1 border-gray-300 shadow-xl transform transition-transform duration-300 hover:scale-105 hover:shadow-2xl">
+        <Chart chartType={chart} data={data} />
+      </div>
+      
+    </div>
+  );
 }

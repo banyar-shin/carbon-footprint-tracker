@@ -53,6 +53,21 @@ const Chart = ({ chartType, data }) => {
         plot_data = data.map((entry) => entry.net_energy_kwh);
         title = 'Yearly Carbon Footprint Summary';
         break;
+      case 'transportation-week':
+        labels = data.map((entry) => entry.date);
+        plot_data = data.map((entry) => entry.carbon_footprint);
+        title = 'Daily Carbon Footprint Summary';
+        break;
+      case 'transportation-month':
+        labels = data.map((entry) => entry.date);
+        plot_data = data.map((entry) => entry.carbon_footprint);
+        title = 'Monthly Carbon Footprint Summary';
+        break;
+      case 'transportation-year':
+        labels = data.map((entry) => entry.date);
+        plot_data = data.map((entry) => entry.carbon_footprint);
+        title = 'Yearly Carbon Footprint Summary';
+        break;
       default:
         console.error("Invalid chart type provided.");
         setChartData(null);
@@ -68,6 +83,7 @@ const Chart = ({ chartType, data }) => {
       labels,
       datasets: [
         {
+          // TODO for includes transportation
           label: chartType.includes('energy') ? 'Carbon Footprint (kg CO2)' : 'Energy (kWh)',
           data: plot_data,
           backgroundColor: 'rgba(75, 192, 192, 0.5)',

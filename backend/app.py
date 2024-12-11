@@ -37,11 +37,6 @@ def checkVehicleData():
         # Query the MongoDB collection for vehicle information
         vehicleSettings = myCollection.find_one({"userID": userID, "vehicleData": {"$exists": True}})
 
-
-
-
-
-
         if vehicleSettings:
             return jsonify({"success": True, "vehicleData": vehicleSettings.get("vehicleData")}), 200
         else:
@@ -75,8 +70,6 @@ def dailyForm():
     else:
         miles_driven = int(data.get("miles_driven"))
     carpool_count = int(data.get("carpool_count"))
-
-
 
     if carpool_count == 0:
         carpool_count = 1
@@ -252,7 +245,7 @@ def calculate_footprint():
             "foodRecommendations": food_recommendations,
         }
     )
-
+'''
 @app.route("/data", methods=["GET"])
 def get_data():
     userID = request.args.get("userID")
@@ -312,6 +305,52 @@ def get_data():
         if chart_type in ["energy-week", "energy-month", "energy-year"]:
             # Returning all data from dailyEnergyData across all documents
             all_data = [user_data.get("dailyEnergyData") for user_data in user_data_documents]
+            return jsonify(all_data), 200
+        
+        else:
+            return jsonify({"error": "Invalid chart type"}), 400
+
+    except Exception as e:
+        return jsonify({"error": f"Failed to get data: {str(e)}"}), 500
+
+
+'''
+@app.route("/data", methods=["GET"])
+def get_data():
+    userID = request.args.get("userID")
+    selected_date = request.args.get("selectedDate")
+    chart_type = request.args.get("chartType")
+    start_date = request.args.get("startDate")  # The date to filter on
+    end_date = request.args.get("endDate")  # For other types like week/month/year, if needed
+    month = request.args.get("month")
+    year = request.args.get("year")
+
+    # Convert selectedDate to YYYY-MM-DD format
+    if selected_date:
+        try:
+            cleaned_date = selected_date.split(" (")[0]  # Remove everything after " ("
+            # Parse the incoming date string
+            selected_date_obj = datetime.strptime(cleaned_date, "%a %b %d %Y %H:%M:%S %Z%z")
+            # Format the date to YYYY-MM-DD
+            selected_date = selected_date_obj.strftime("%Y-%m-%d")
+        except ValueError as e:
+            return jsonify({"error": f"Invalid date format for selectedDate: {str(e)}"}), 400
+
+    if not userID:
+        return jsonify({"error": "userID is required"}), 400
+    
+    try:
+        # Query all documents with the given userID
+        user_data_documents = myCollection.find({"userID": userID}, {"_id": 0})
+        
+        if not user_data_documents:
+            return jsonify({"error": "User not found"}), 404
+        
+        # If the chart type is for week/month/year, return the full dailyEnergyData
+        if chart_type in ["transportation-week", "transportation-month", "transportation-year"]:
+            # Returning all data from dailyEnergyData across all documents
+            all_data = [user_data.get("transportationData") for user_data in user_data_documents]
+            print(all_data)
             return jsonify(all_data), 200
         
         else:
