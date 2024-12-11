@@ -91,8 +91,8 @@ const Chart = ({ chartType, data }) => {
         {
           label: chartType.includes('energy') ? 'Energy (kWh)' : chartType.includes('transportation') ? 'Miles Driven (miles)' : 'Carbon Footprint (kg CO2)',
           data: plot_data,
-          backgroundColor: 'rgba(75, 192, 192, 0.5)',
-          borderColor: 'rgba(75, 192, 192, 1)',
+          backgroundColor: '#8884d8',
+          borderColor: '#8884d8',
           borderWidth: 2,
         },
       ],
