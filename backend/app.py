@@ -67,6 +67,7 @@ def dailyForm():
 
     # Get from form
     date = data.get("date")
+    date = "12/11/2024"
 
     # If user did not enter in Miles Driven use average miles driven to calculate
     if(data.get("miles_driven") is None):
@@ -92,28 +93,7 @@ def dailyForm():
     if fuel_type == "EV":
 
         energyUsedDriving = ((miles_driven * wh_mile) / 1000)
-
-
-        if energyInfo is None:
-            carbon_footprint = (energyUsedDriving) * CO2_PER_KWH / carpool_count
-
-        elif energyInfo.get("hasSolar") == True:
-            energyProducedInDay = getEnergyProduced(userID, date)
-            if energyProducedInDay > energyUsedDriving: # Used less energy driving than generated
-                carbon_footprint = (-energyProducedInDay - energyUsedDriving) * CO2_PER_KWH / carpool_count 
-            elif energyProducedInDay < energyUsedDriving: # Used more energy driving than generated
-                carbon_footprint = (energyUsedDriving - energyProducedInDay) * CO2_PER_KWH / carpool_count 
-
-        elif energyInfo.get("hasSolar") == False: # No Solar installed
-            carbon_footprint = (energyUsedDriving) * CO2_PER_KWH / carpool_count
-            
-            energyProducedInDay = getEnergyProduced(userID, date)
-            if energyProducedInDay > energyUsedDriving: # Used less energy driving than generated
-                carbon_footprint = (-energyProducedInDay - energyUsedDriving) * CO2_PER_KWH / carpool_count 
-            elif energyProducedInDay < energyUsedDriving: # Used more energy driving than generated
-                carbon_footprint = (energyUsedDriving - energyProducedInDay) * CO2_PER_KWH / carpool_count 
-        else:
-            return jsonify({"error": "Cannot retrieve energy info"}), 400
+        carbon_footprint = (energyUsedDriving) * CO2_PER_KWH / carpool_count
 
     elif fuel_type == "Diesel":
         carbon_footprint = (miles_driven / mpg) * CO2_DIESEL / carpool_count
@@ -122,15 +102,30 @@ def dailyForm():
     else:
         return jsonify({"error": "Unknown vehicle type"}), 400
 
-    # Prepare carbonfootprint data
-    carbon_footprint = {"date": date, "carbon_footprint": carbon_footprint}
 
-    # Insert into MongoDB
-    myCollection.update_one(
-        {"userID": userID},
-        {"$set": {"transportationData": carbon_footprint}},
-        upsert=True,
-    )
+    # Prepare carbon footprint data
+    carbon_footprint_data = {"date": date, "carbon_footprint": carbon_footprint}
+
+    # Check if the record for the given date already exists
+    user_data = myCollection.find_one({"userID": userID, "transportationData.date": date})
+
+    if user_data:
+        # Update the existing record
+        myCollection.update_one(
+            {"userID": userID, "transportationData.date": date},
+            {"$set": {"transportationData.$.carbon_footprint": carbon_footprint}}
+        )
+    else:
+        # Insert a new record
+        myCollection.update_one(
+            {"userID": userID},
+            {
+                "$push": {
+                    "transportationData": carbon_footprint_data,
+                }
+            },
+            upsert=True,
+        )
     return jsonify({"Pass": "Updated Daily Form Information"}), 200
 
 
@@ -297,7 +292,8 @@ def get_data():
         for user_data in user_data_documents:
             if chart_type == "energy-day" and selected_date:
                 # Look through the "dailyEnergyData" in each document and check the date
-                for entry in user_data.get("detailedEnergyUsageData", []):
+                starting = user_data.get("detailedEnergyUsageData", [])
+                for entry in starting[0]:
                     timestamp = entry.get("timestamp")
                     if timestamp:
                         entry_date = timestamp.split(" ")[0]
@@ -323,7 +319,6 @@ def get_data():
 
     except Exception as e:
         return jsonify({"error": f"Failed to get data: {str(e)}"}), 500
-
 
 
 
