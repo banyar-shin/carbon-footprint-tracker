@@ -48,6 +48,12 @@ pip install -r requirements.txt
 mongopass = "your_mongodb_connection_string"
 ```
 
+4. Create a `geminiKey.py` file with your Gemini API key:
+
+```python
+GEMINI_API_KEY = "your_gemini_api_key"
+```
+
 ### Frontend Setup
 
 1. Navigate to the frontend directory:
